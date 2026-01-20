@@ -1,83 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cloud, Sun, Moon, CloudRain, Clock, Cat, Coffee, Sparkles, Zap, DollarSign, Heart } from 'lucide-react';
+import { Cloud, Sun, Moon, Coffee, Cat } from 'lucide-react';
+import { GREETINGS_ID, GREETINGS_JV, GREETINGS_SU, GREETINGS_EN, Language } from '../utils/translations';
 
-// --- THE ULTIMATE CAT SLANG DICTIONARY ---
-const RANDOM_PHRASES = [
-  // Shopping Motivation (The "Racun")
-  "Dompet aman? Gak yakin sih miaw 😹",
-  "Awas kalap, racunnya kenceng banget!",
-  "Gass checkout sekarang, keburu abis!",
-  "Barang ini lucu parah, fix no debat!",
-  "Voucher gratis ongkir udah diklaim belum?",
-  "Hidup cuma sekali, checkout berkali-kali miaw.",
-  "Keranjang masih muat kan? Tambah lagi dong!",
-  "Miaw miaw... (Artinya: Belanja itu healing)",
-  "Lagi gabut? Cuci mata dulu sini.",
-  "Semoga rejeki lancar biar bisa belanja terus ✨",
-  "Uang bisa dicari, barang lucu limited edition miaw!",
-  "Definisi 'Butuh' vs 'Ingin' itu beda tipis ya bestie.",
-  "Sedekah ke diri sendiri itu penting, checkout sekarang!",
-  "Manusia kerja keras bagai kuda, kucing belanja bagai sultan.",
-  "Jangan nunggu kaya buat beli barang lucu. Beli dulu, kaya kemudian.",
-  "Self reward itu wajib, tagihan itu nanti dulu miaw.",
-  "Barang ini bisa bikin mantan nyesel putusin kamu. Serius.",
-  "Kata mama kucing: Kalau suka, langsung bungkus!",
-  "Obat pusing paling ampuh ya paket dateng ke rumah.",
-  "Cita-cita: Rich Cat. Hobi: Checkout Shopee.",
-  
-  // Sarcastic / Funny
-  "Info loker jadi kucing piaraan orang kaya dong miaw...",
-  "Kamu kerja, aku yang abisin uangnya. Deal? 🤝",
-  "Lagi pantau harga atau pantau jodoh nih?",
-  "Scroll terus sampe jempol kriting, checkout kagak.",
-  "Misi paket! (Suara paling indah di dunia)",
-  "Duit tidak dibawa mati, tapi dibawa belanja miaw.",
-  "Saldo ATM aman? Atau udah teriak minta tolong?",
-  "Kenapa harus nabung kalau bisa belanja? (Sesat miaw 😹)",
-  "Aku bukan boros, aku cuma mengapresiasi karya seni (barang).",
-  "Diet wacana, belanja laksana.",
-  
-  // Cat Life
-  "Majikan (Kucing) butuh upeti baru nih.",
-  "Jangan lupa kasih makan kucing sebelum belanja!",
-  "Pusat resolusi kegalauan: Keranjang Belanja.",
-  "Miaw... (Lagi judging selera belanja kamu)",
-  "Kucing tetangga pasti iri liat barang ini.",
-];
+interface GreetingProps {
+  lang: Language;
+}
 
-const TIME_PHRASES = {
-  morning: [
-    "Pagi Hooman! Udah kasih makan kucing belum?",
-    "Sarapan bubur apa sarapan racun shopee?",
-    "Awali pagi dengan checkout, biar semangat!",
-    "Matahari udah terbit, diskon juga udah terbit.",
-    "Semangat cari cuan buat beli Whiskas (dan barang ini)!"
-  ],
-  afternoon: [
-    "Siang Bestie! Jam rawan ngantuk, mending checkout.",
-    "Panas gini enaknya ngadem sambil scroll racun.",
-    "Udah makan siang? Jangan lupa dessert-nya belanja.",
-    "Kerja terus, kapan belanjanya? Yuk istirahat bentar.",
-    "Siang bolong, dompet juga jangan sampe bolong ya."
-  ],
-  evening: [
-    "Sore Santuy! Ngeteh sore sambil nunggu paket.",
-    "Langit senja kalah indah sama barang ini miaw.",
-    "Pulang kerja, langsung buka aplikasi keranjang oren.",
-    "Sore-sore galau? Mending check out barang lucu.",
-    "Rebahan time! Saatnya scroll sampe ketiduran."
-  ],
-  night: [
-    "Malem Guys! Begadang jangan, belanja boleh.",
-    "Jam-jam overthinking... mending overshopping.",
-    "Awas, checkout tengah malem biasanya khilaf.",
-    "Mimpi indah itu kalau paketnya gratis ongkir.",
-    "Tidur woy! Tapi checkout dulu satu barang deh."
-  ]
-};
-
-export const Greeting = () => {
+export const Greeting: React.FC<GreetingProps> = ({ lang }) => {
   const [greeting, setGreeting] = useState({
     period: '',
     timeText: '',
@@ -92,38 +22,62 @@ export const Greeting = () => {
       let period = '';
       let timeText = '';
       let icon = Sun;
-      let timeSpecificPhrases: string[] = [];
+      
+      // Select Dictionary based on Language
+      let DICT;
+      switch (lang) {
+        case 'jv': DICT = GREETINGS_JV; break;
+        case 'su': DICT = GREETINGS_SU; break;
+        case 'en': DICT = GREETINGS_EN; break;
+        default: DICT = GREETINGS_ID;
+      }
 
       // Time Logic
+      let timeSpecificPhrases: string[] = [];
+
       if (hours >= 4 && hours < 11) {
-        period = 'Pagi Hooman!';
-        timeSpecificPhrases = TIME_PHRASES.morning;
+        if (lang === 'jv') period = 'Sugeng Enjang!';
+        else if (lang === 'su') period = 'Wilujeng Enjing!';
+        else if (lang === 'en') period = 'Good Morning!';
+        else period = 'Pagi Hooman!';
+        
+        timeSpecificPhrases = DICT.morning;
         icon = Coffee;
       } else if (hours >= 11 && hours < 15) {
-        period = 'Siang Bestie!';
-        timeSpecificPhrases = TIME_PHRASES.afternoon;
+        if (lang === 'jv') period = 'Sugeng Siyang!';
+        else if (lang === 'su') period = 'Wilujeng Siang!';
+        else if (lang === 'en') period = 'Good Afternoon!';
+        else period = 'Siang Bestie!';
+
+        timeSpecificPhrases = DICT.afternoon;
         icon = Sun;
       } else if (hours >= 15 && hours < 18) {
-        period = 'Sore Santuy!';
-        timeSpecificPhrases = TIME_PHRASES.evening;
+        if (lang === 'jv') period = 'Sugeng Sonten!';
+        else if (lang === 'su') period = 'Wilujeng Sonten!';
+        else if (lang === 'en') period = 'Good Evening!';
+        else period = 'Sore Santuy!';
+
+        timeSpecificPhrases = DICT.evening;
         icon = Cloud;
       } else {
-        period = 'Malem Guys!';
-        timeSpecificPhrases = TIME_PHRASES.night;
+        if (lang === 'jv') period = 'Sugeng Dalu!';
+        else if (lang === 'su') period = 'Wilujeng Wengi!';
+        else if (lang === 'en') period = 'Good Night!';
+        else period = 'Malem Guys!';
+
+        timeSpecificPhrases = DICT.night;
         icon = Moon;
       }
 
       // Randomizer Logic
-      // 30% chance of time-specific phrase, 70% chance of random slang
       const randomBase = Math.random();
       let subText = '';
       
       if (randomBase < 0.3) {
         timeText = timeSpecificPhrases[Math.floor(Math.random() * timeSpecificPhrases.length)];
-        subText = RANDOM_PHRASES[Math.floor(Math.random() * RANDOM_PHRASES.length)];
+        subText = DICT.random[Math.floor(Math.random() * DICT.random.length)];
       } else {
-        // Swap them for variety
-        timeText = RANDOM_PHRASES[Math.floor(Math.random() * RANDOM_PHRASES.length)];
+        timeText = DICT.random[Math.floor(Math.random() * DICT.random.length)];
         subText = timeSpecificPhrases[Math.floor(Math.random() * timeSpecificPhrases.length)];
       }
 
@@ -131,10 +85,10 @@ export const Greeting = () => {
     };
 
     updateContent();
-    const interval = setInterval(updateContent, 8000); // Change every 8 seconds for dynamic feel
+    const interval = setInterval(updateContent, 8000); 
 
     return () => clearInterval(interval);
-  }, []);
+  }, [lang]); // Re-run when language changes
 
   const Icon = greeting.icon;
 
@@ -145,7 +99,6 @@ export const Greeting = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white/80 dark:bg-dark-surface/80 backdrop-blur-md rounded-3xl p-6 shadow-lg border border-cat-100 dark:border-gray-700 relative overflow-hidden group hover:shadow-cat-200/50 transition-all duration-500"
       >
-        {/* Decorative Background Elements */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-cat-200/30 rounded-full blur-2xl group-hover:bg-cat-300/30 transition-colors duration-700 animate-pulse" />
         <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-pink-200/30 rounded-full blur-2xl group-hover:bg-pink-300/30 transition-colors duration-700 animate-pulse" style={{ animationDelay: '1s' }} />
 

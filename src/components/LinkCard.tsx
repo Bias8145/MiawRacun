@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ExternalLink, ShoppingBag, Tag, Edit2, Trash2, ShoppingCart, Share2, Flame, Eye } from 'lucide-react';
+import { ChevronDown, ExternalLink, ShoppingBag, Tag, Edit2, Trash2, ShoppingCart, Share2, Flame, Eye, Heart, Store, PlayCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { toast } from 'react-hot-toast';
 import { Link } from '../lib/supabase';
 import { cn } from '../utils/helpers';
+import { TRANSLATIONS, Language } from '../utils/translations';
 
 interface LinkCardProps {
   link: Link;
@@ -12,10 +13,23 @@ interface LinkCardProps {
   onEdit: (link: Link) => void;
   onDelete: (id: string) => void;
   onTrackClick: (id: string) => void;
+  lang: Language;
+  isWishlisted: boolean;
+  onToggleWishlist: (id: string) => void;
 }
 
-export const LinkCard: React.FC<LinkCardProps> = ({ link, isAdmin, onEdit, onDelete, onTrackClick }) => {
+export const LinkCard: React.FC<LinkCardProps> = ({ 
+  link, 
+  isAdmin, 
+  onEdit, 
+  onDelete, 
+  onTrackClick, 
+  lang,
+  isWishlisted,
+  onToggleWishlist
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const t = TRANSLATIONS[lang];
 
   const handleCardClick = () => {
     setIsExpanded(!isExpanded);
@@ -25,7 +39,6 @@ export const LinkCard: React.FC<LinkCardProps> = ({ link, isAdmin, onEdit, onDel
     e.stopPropagation();
     onTrackClick(link.id);
     
-    // Mini confetti for user engagement
     confetti({
       particleCount: 30,
       spread: 50,
@@ -47,15 +60,59 @@ export const LinkCard: React.FC<LinkCardProps> = ({ link, isAdmin, onEdit, onDel
     try {
       if (navigator.share) {
         await navigator.share(shareData);
-        toast.success("Link berhasil disebar miaw!");
+        toast.success(t.saved); // Reuse saved message or create new share message
       } else {
         await navigator.clipboard.writeText(link.url);
-        toast.success("Link dicopy! Paste ke temen kamu miaw.");
+        toast.success(t.copied);
       }
     } catch (err) {
       console.error("Error sharing:", err);
     }
   };
+
+  const handleWishlist = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleWishlist(link.id);
+    if (!isWishlisted) {
+      toast.success(t.wishlistAdded, { icon: '💖' });
+    } else {
+      toast(t.wishlistRemoved, { icon: '💔' });
+    }
+  };
+
+  // Helper for Platform Styles (Aesthetic 3D Stickers)
+  const getPlatformConfig = (platform: string) => {
+    switch(platform) {
+      case 'Shopee': 
+        return {
+          className: 'bg-gradient-to-b from-orange-400 to-orange-500 text-white shadow-orange-500/30 border-orange-700',
+          icon: ShoppingBag
+        };
+      case 'Tokopedia': 
+        return {
+          className: 'bg-gradient-to-b from-green-400 to-green-500 text-white shadow-green-500/30 border-green-700',
+          icon: Store
+        };
+      case 'Lazada': 
+        return {
+          className: 'bg-gradient-to-b from-blue-500 to-blue-600 text-white shadow-blue-600/30 border-blue-800',
+          icon: Heart
+        };
+      case 'TikTok Shop': 
+        return {
+          className: 'bg-gradient-to-b from-gray-800 to-black text-white shadow-gray-500/30 border-gray-900',
+          icon: PlayCircle
+        };
+      default: 
+        return {
+          className: 'bg-gradient-to-b from-purple-400 to-purple-500 text-white shadow-purple-500/30 border-purple-700',
+          icon: ExternalLink
+        };
+    }
+  };
+
+  const platformConfig = getPlatformConfig(link.platform);
+  const PlatformIcon = platformConfig.icon;
 
   return (
     <motion.div
@@ -72,17 +129,12 @@ export const LinkCard: React.FC<LinkCardProps> = ({ link, isAdmin, onEdit, onDel
         className="p-3 md:p-4 cursor-pointer relative"
       >
         <div className="flex items-center gap-3 md:gap-4">
-          {/* Aesthetic Icon Box */}
           <div className={cn(
             "w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all shadow-sm relative overflow-hidden",
             link.platform === 'Shopee' ? "bg-orange-50 text-orange-500" :
             link.platform === 'Tokopedia' ? "bg-green-50 text-green-500" :
             "bg-blue-50 text-blue-500"
           )}>
-             {/* Hot Badge logic: 
-                 - Public: Show "HOT" if popular (clicks > 10) but NO number.
-                 - Admin: Always sees numbers, so badge is less critical but still nice.
-             */}
              {link.clicks > 10 && (
                 <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded-bl-lg font-bold z-10 flex items-center gap-0.5 animate-pulse">
                     <Flame className="w-2 h-2 fill-current" /> HOT
@@ -91,39 +143,54 @@ export const LinkCard: React.FC<LinkCardProps> = ({ link, isAdmin, onEdit, onDel
             <ShoppingBag className="w-6 h-6 md:w-7 md:h-7 group-hover:scale-110 transition-transform duration-300" />
           </div>
           
-          {/* Content */}
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-gray-800 dark:text-white truncate text-[13px] md:text-[18px] leading-tight group-hover:text-cat-600 dark:group-hover:text-cat-400 transition-colors">
               {link.title}
             </h3>
-            <div className="flex items-center gap-2 text-[11px] md:text-sm text-gray-500 dark:text-gray-400 mt-1.5 flex-wrap">
+            <div className="flex items-center gap-2 text-[11px] md:text-sm text-gray-500 dark:text-gray-400 mt-2 flex-wrap">
               <span className="bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-medium">
                 <Tag className="w-3 h-3" /> {link.category.replace(/ .*/, '')}
               </span>
-              <span className="text-gray-300">•</span>
-              <span className="font-medium text-cat-500">{link.platform}</span>
               
-              {/* ADMIN ONLY: Click Counter */}
+              {/* Aesthetic Platform Badge - REDESIGNED */}
+              <span className={cn(
+                "px-3 py-1 rounded-xl text-[10px] font-black shadow-[0_2px_0_0_rgba(0,0,0,0.1)] border-b-[3px] transform active:scale-95 transition-all flex items-center gap-1.5 tracking-wide",
+                platformConfig.className
+              )}>
+                <PlatformIcon className="w-3 h-3 fill-white/20" />
+                {link.platform}
+              </span>
+              
               {isAdmin && (
                   <>
                     <span className="text-gray-300">•</span>
                     <span className="flex items-center gap-1 text-xs text-orange-500 font-bold bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 rounded-md">
-                        <Eye className="w-3 h-3" /> {link.clicks}x diklik
+                        <Eye className="w-3 h-3" /> {link.clicks}
                     </span>
                   </>
               )}
 
-              {/* PUBLIC: Only show generic "Lagi Rame" if popular, no numbers */}
               {!isAdmin && link.clicks > 20 && (
                   <>
                     <span className="text-gray-300">•</span>
                     <span className="flex items-center gap-1 text-xs text-red-400 font-bold italic">
-                        <Flame className="w-3 h-3 fill-current" /> Lagi Rame!
+                        <Flame className="w-3 h-3 fill-current" /> {t.hotBadge}
                     </span>
                   </>
               )}
             </div>
           </div>
+
+          {/* Wishlist Button */}
+          <button 
+            onClick={handleWishlist}
+            className={cn(
+              "p-2 rounded-full transition-colors z-20",
+              isWishlisted ? "text-pink-500 bg-pink-50 dark:bg-pink-900/20" : "text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+            )}
+          >
+            <Heart className={cn("w-5 h-5 md:w-6 md:h-6", isWishlisted ? "fill-current" : "")} />
+          </button>
 
           <motion.div
             animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -160,14 +227,14 @@ export const LinkCard: React.FC<LinkCardProps> = ({ link, isAdmin, onEdit, onDel
                     className="flex-1 bg-cat-500 hover:bg-cat-600 text-white font-bold text-xs md:text-sm py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-cat-500/20 active:scale-95 hover:-translate-y-0.5"
                     >
                     <ShoppingCart className="w-4 h-4" />
-                    Beli Sekarang
+                    {t.buyBtn}
                     <ExternalLink className="w-3 h-3 opacity-70" />
                     </a>
 
                     <button
                         onClick={handleShare}
                         className="px-4 py-3 bg-white dark:bg-dark-surface border-2 border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all active:scale-95 flex items-center justify-center"
-                        title="Sebar Racun"
+                        title={t.shareBtn}
                     >
                         <Share2 className="w-5 h-5" />
                     </button>
@@ -175,7 +242,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({ link, isAdmin, onEdit, onDel
 
                 {isAdmin && (
                   <div className="flex gap-2 justify-end pt-2 border-t border-gray-100 dark:border-gray-800 border-dashed">
-                    <span className="text-[10px] text-gray-400 self-center mr-auto">Admin Controls:</span>
+                    <span className="text-[10px] text-gray-400 self-center mr-auto">{t.adminControls}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); onEdit(link); }}
                       className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors text-xs font-bold"

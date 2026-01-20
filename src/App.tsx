@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
-import { Search, Plus, LogIn, LogOut, Moon, Sun, Cat, Settings, Wand2, Sparkles, Loader2, ArrowUpDown, Share2, Dices, ArrowUp } from 'lucide-react';
+import { 
+  Search, Plus, LogIn, LogOut, Moon, Sun, Cat, Settings, 
+  Wand2, Sparkles, Loader2, ArrowUpDown, Share2, Dices, 
+  ArrowUp, Heart, Gem, Wallet, HeartCrack, Smile, PiggyBank,
+  Filter, HeartHandshake, LayoutGrid, ChevronDown, ChevronUp,
+  ShoppingBag, ChevronRight
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { supabase, Link } from './lib/supabase';
 import { Greeting } from './components/Greeting';
@@ -9,6 +16,7 @@ import { LinkCard } from './components/LinkCard';
 import { Modal } from './components/Modal';
 import { AdminStats } from './components/AdminStats';
 import { Footer } from './components/Footer';
+import { LanguageSelector } from './components/LanguageSelector';
 import { 
   cn, 
   CATEGORIES, 
@@ -17,6 +25,7 @@ import {
   getPlatformFromUrl,
   extractInfoFromUrl 
 } from './utils/helpers';
+import { TRANSLATIONS, Language } from './utils/translations';
 
 function App() {
   // State
@@ -27,33 +36,47 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   
-  // Loading States for Actions
+  // Initialize Language from LocalStorage
+  const [lang, setLang] = useState<Language>(() => {
+    const saved = localStorage.getItem('miawLang');
+    return (saved as Language) || 'id';
+  });
+
+  const [wishlist, setWishlist] = useState<string[]>([]);
+  const [showWishlistOnly, setShowWishlistOnly] = useState(false);
+  
+  const [mood, setMood] = useState<'all' | 'sultan' | 'bokek' | 'galau' | 'bucin'>('all');
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false); // Default COLLAPSED
+
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
-  // Filters & Sorting
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [selectedPlatform, setSelectedPlatform] = useState('Semua Platform');
   const [sortBy, setSortBy] = useState<'newest' | 'popular'>('newest');
 
-  // Modals
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState<{type: string, id?: string} | null>(null);
 
-  // Form State
   const [password, setPassword] = useState('');
   const [linkForm, setLinkForm] = useState<Partial<Link>>({});
   const [isAutoFilling, setIsAutoFilling] = useState(false);
 
-  // Initial Load
+  // Random Gacha CTA State
+  const [gachaCta, setGachaCta] = useState('');
+
+  const t = TRANSLATIONS[lang];
+
   useEffect(() => {
     fetchLinks();
     const storedAdmin = localStorage.getItem('isAdmin');
     if (storedAdmin === 'true') setIsAdmin(true);
 
-    // Scroll Listener
+    const storedWishlist = localStorage.getItem('miawWishlist');
+    if (storedWishlist) setWishlist(JSON.parse(storedWishlist));
+
     const handleScroll = () => {
       if (window.scrollY > 300) {
         setShowScrollTop(true);
@@ -65,7 +88,17 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Theme Effect
+  // Update Gacha CTA when language changes
+  useEffect(() => {
+    const ctas = t.gachaCta;
+    setGachaCta(ctas[Math.floor(Math.random() * ctas.length)]);
+  }, [lang, t.gachaCta]);
+
+  // Save Language Preference
+  useEffect(() => {
+    localStorage.setItem('miawLang', lang);
+  }, [lang]);
+
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -74,12 +107,49 @@ function App() {
     }
   }, [darkMode]);
 
-  // Filter & Sort Logic
   useEffect(() => {
-    let result = [...links]; // Create a copy
+    localStorage.setItem('miawWishlist', JSON.stringify(wishlist));
+  }, [wishlist]);
+
+  useEffect(() => {
+    let result = [...links];
+
+    if (showWishlistOnly) {
+      result = result.filter(link => wishlist.includes(link.id));
+    }
+
+    if (mood !== 'all') {
+      if (mood === 'sultan') {
+        result = result.filter(link => 
+          link.category.includes('Gadget') || 
+          link.category.includes('Kamar') ||
+          link.title.toLowerCase().includes('mahal') ||
+          link.title.toLowerCase().includes('iphone')
+        );
+      } else if (mood === 'bokek') {
+        result = result.filter(link => 
+          link.category.includes('Jajanan') || 
+          link.category.includes('Hobi') ||
+          link.title.toLowerCase().includes('murah') ||
+          link.platform === 'Shopee'
+        );
+      } else if (mood === 'galau') {
+        result = result.filter(link => 
+          link.category.includes('Jajanan') || 
+          link.category.includes('Anabul') ||
+          link.title.toLowerCase().includes('coklat')
+        );
+      } else if (mood === 'bucin') {
+        result = result.filter(link => 
+          link.category.includes('Kado') || 
+          link.category.includes('OOTD') ||
+          link.title.toLowerCase().includes('couple')
+        );
+      }
+    }
 
     if (selectedCategory !== 'Semua') {
-      result = result.filter(link => link.category === selectedCategory);
+      result = result.filter(link => link.category.includes(selectedCategory) || selectedCategory.includes(link.category));
     }
 
     if (selectedPlatform !== 'Semua Platform') {
@@ -95,7 +165,6 @@ function App() {
       );
     }
 
-    // Sorting
     if (sortBy === 'popular') {
         result.sort((a, b) => b.clicks - a.clicks);
     } else {
@@ -103,9 +172,15 @@ function App() {
     }
 
     setFilteredLinks(result);
-  }, [links, searchQuery, selectedCategory, selectedPlatform, sortBy]);
+  }, [links, searchQuery, selectedCategory, selectedPlatform, sortBy, showWishlistOnly, wishlist, mood]);
 
-  // Actions
+  // Auto-hide categories when searching
+  useEffect(() => {
+    if (searchQuery) {
+      setIsCategoriesOpen(false);
+    }
+  }, [searchQuery]);
+
   const fetchLinks = async () => {
     try {
       const { data, error } = await supabase
@@ -134,7 +209,7 @@ function App() {
       setShowLoginModal(false);
       setPassword('');
       setShowConfirmModal(null);
-      toast.success('Welcome back Majikan! 😻');
+      toast.success(t.welcomeBack);
       confetti({
         particleCount: 100,
         spread: 70,
@@ -142,7 +217,7 @@ function App() {
         colors: ['#0ea5e9', '#f472b6', '#fbbf24']
       });
     } else {
-      toast.error('Sandi salah! Kamu siapa? 😾');
+      toast.error(t.wrongPass);
       setShowConfirmModal(null);
     }
   };
@@ -155,7 +230,7 @@ function App() {
     setIsAdmin(false);
     localStorage.removeItem('isAdmin');
     setShowConfirmModal(null);
-    toast.success('Babay! Jangan lupa kasih makan kucing 👋');
+    toast.success(t.bye);
   };
 
   const handleSaveLink = async (e: React.FormEvent) => {
@@ -167,7 +242,7 @@ function App() {
     setIsSaving(true);
     try {
       if (!linkForm.title || !linkForm.url) {
-          toast.error("Judul sama Link wajib diisi miaw!");
+          toast.error("Judul & Link wajib diisi!");
           setIsSaving(false);
           return;
       }
@@ -191,13 +266,13 @@ function App() {
           .update(payload)
           .eq('id', linkForm.id);
         if (error) throw error;
-        toast.success('Racun berhasil diupdate miaw!');
+        toast.success(t.updated);
       } else {
         const { error } = await supabase
           .from('links')
           .insert([payload]);
         if (error) throw error;
-        toast.success('Racun baru ditambahkan miaw!');
+        toast.success(t.saved);
       }
 
       fetchLinks();
@@ -206,7 +281,7 @@ function App() {
       setShowConfirmModal(null);
     } catch (error: any) {
       console.error('Error saving link:', error);
-      toast.error(`Gagal nyimpen: ${error.message || 'Cek koneksi atau database ya miaw.'}`);
+      toast.error(`Gagal simpan: ${error.message}`);
       setShowConfirmModal(null);
     } finally {
       setIsSaving(false);
@@ -229,39 +304,39 @@ function App() {
       if (error) throw error;
       
       setLinks(links.filter(l => l.id !== showConfirmModal.id));
-      toast.success('Link berhasil dibuang ke kotak pasir!');
+      toast.success(t.deleted);
       setShowConfirmModal(null);
     } catch (error) {
       console.error('Error deleting:', error);
-      toast.error('Gagal ngehapus link');
+      toast.error('Gagal hapus');
     } finally {
       setIsDeleting(false);
     }
   };
 
   const handleTrackClick = async (id: string) => {
-    // Optimistic update locally
     setLinks(prev => prev.map(l => l.id === id ? { ...l, clicks: l.clicks + 1 } : l));
-    
     try {
-      // Use RPC for atomic increment
       await supabase.rpc('increment_clicks', { row_id: id });
     } catch (err) {
-      // Fallback if RPC fails or not exists (though we added migration)
       console.error("Tracking error", err);
     }
   };
 
-  // Auto-Fill Logic
+  const handleToggleWishlist = (id: string) => {
+    setWishlist(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(itemId => itemId !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
+
   const handleUrlBlur = () => {
     if (!linkForm.url) return;
-    
     setIsAutoFilling(true);
-    
-    // 1. Detect Platform
     const platform = getPlatformFromUrl(linkForm.url);
-    
-    // 2. Try to extract info
     const extracted = extractInfoFromUrl(linkForm.url);
     
     setLinkForm(prev => ({
@@ -271,7 +346,6 @@ function App() {
       ...(extracted?.description ? { description: extracted.description } : {})
     }));
 
-    // If we extracted a title, we can also guess category
     if (extracted?.title) {
       const category = getCategoryFromTitle(extracted.title);
       setLinkForm(prev => ({ ...prev, category }));
@@ -290,44 +364,40 @@ function App() {
     setShowLinkModal(true);
   };
 
-  const handleShareApp = async () => {
-    const shareData = {
-        title: 'Miaw Racun 🐱',
-        text: 'Pusat barang gemoy & racun shopee pilihan kucing! Awas kalap miaw.',
-        url: window.location.href
-    };
-    try {
-        if (navigator.share) {
-            await navigator.share(shareData);
-        } else {
-            await navigator.clipboard.writeText(window.location.href);
-            toast.success("Link web udah dicopy! Sebarin gih.");
-        }
-    } catch (e) { console.log(e); }
-  };
-
-  // GACHA RACUN: Random Pick Feature
   const handleGacha = () => {
       if (links.length === 0) return;
       const randomLink = links[Math.floor(Math.random() * links.length)];
-      
-      // Highlight effect
       setSearchQuery(randomLink.title);
-      toast.success("🎲 Gacha! Kucing memilihkan ini buat kamu!", { icon: '😸' });
       
-      // Scroll to top
-      window.scrollTo({ top: 300, behavior: 'smooth' });
+      // Random Toast Message
+      const toasts = t.gachaToasts;
+      const randomMsg = toasts[Math.floor(Math.random() * toasts.length)];
+      
+      toast.success(randomMsg, { icon: '🎲' });
+      window.scrollTo({ top: 400, behavior: 'smooth' });
+      
+      // Refresh CTA for next time
+      const ctas = t.gachaCta;
+      setGachaCta(ctas[Math.floor(Math.random() * ctas.length)]);
   };
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Calculate Stats for Admin
   const totalClicks = links.reduce((acc, link) => acc + (link.clicks || 0), 0);
 
+  // MOODS with Lucide Icons
+  const MOODS = [
+    { id: 'all', label: t.moodAll, icon: LayoutGrid, color: 'bg-gray-100 text-gray-600 border-gray-200' },
+    { id: 'sultan', label: t.moodSultan, icon: Gem, color: 'bg-indigo-50 text-indigo-600 border-indigo-200' },
+    { id: 'bokek', label: t.moodBokek, icon: Wallet, color: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
+    { id: 'galau', label: t.moodGalau, icon: HeartCrack, color: 'bg-slate-50 text-slate-600 border-slate-200' },
+    { id: 'bucin', label: t.moodBucin, icon: HeartHandshake, color: 'bg-rose-50 text-rose-600 border-rose-200' },
+  ];
+
   return (
-    <div className="min-h-screen bg-cat-50 dark:bg-dark-bg transition-colors duration-300 font-sans text-gray-800 dark:text-gray-200">
+    <div className="min-h-screen bg-cat-50 dark:bg-dark-bg transition-colors duration-300 font-sans text-gray-800 dark:text-gray-200 pb-20">
       <Toaster position="top-center" toastOptions={{
         style: {
           borderRadius: '20px',
@@ -337,11 +407,10 @@ function App() {
         }
       }} />
 
-      {/* Navbar - Optimized for Mobile */}
+      {/* Navbar */}
       <nav className="sticky top-0 z-30 bg-white/90 dark:bg-dark-surface/90 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 px-4 py-3 md:py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-3 group cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
-            {/* Header Icon */}
             <div className="relative transform transition-transform group-hover:scale-110 duration-300">
               <Cat className="w-8 h-8 md:w-12 md:h-12 text-cat-500 drop-shadow-md" strokeWidth={2.5} />
               <div className="absolute -top-1 -right-1 text-pink-400 animate-bounce-slow">
@@ -353,28 +422,13 @@ function App() {
                 Miaw<span className="text-gray-800 dark:text-white">Racun</span>
               </span>
               <span className="text-[9px] md:text-[11px] font-bold text-gray-400 tracking-[0.1em] md:tracking-[0.2em] uppercase ml-0.5">
-                Pusat Barang Gemoy
+                {lang === 'jv' ? 'Pusat Barang Sae' : 'Pusat Barang Gemoy'}
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Gacha Button (New Feature) */}
-            <button
-                onClick={handleGacha}
-                className="p-2 md:p-2.5 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-500 transition-colors"
-                title="Gacha Racun (Random Pick)"
-            >
-                <Dices className="w-5 h-5" />
-            </button>
-
-            <button
-                onClick={handleShareApp}
-                className="p-2 md:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400"
-                title="Sebar Web Ini"
-            >
-                <Share2 className="w-5 h-5" />
-            </button>
+            <LanguageSelector currentLang={lang} onSelect={setLang} />
 
             <button
               onClick={() => setDarkMode(!darkMode)}
@@ -389,12 +443,12 @@ function App() {
                   onClick={openAddModal}
                   className="flex items-center gap-1 bg-cat-500 hover:bg-cat-600 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-full text-xs md:text-sm font-bold transition-all shadow-lg shadow-cat-500/30 active:scale-95"
                 >
-                  <Plus className="w-4 h-4" /> <span className="hidden md:inline">Nambah</span> Racun
+                  <Plus className="w-4 h-4" /> <span className="hidden md:inline">{t.addBtn}</span>
                 </button>
                 <button
                   onClick={handleLogout}
                   className="p-2 md:p-2.5 rounded-full hover:bg-red-100 text-red-500 transition-colors"
-                  title="Logout"
+                  title={t.logoutBtn}
                 >
                   <LogOut className="w-5 h-5" />
                 </button>
@@ -403,7 +457,7 @@ function App() {
               <button
                 onClick={() => setShowLoginModal(true)}
                 className="p-2 md:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 transition-colors"
-                title="Login Majikan"
+                title="Login"
               >
                 <Settings className="w-5 h-5" />
               </button>
@@ -413,28 +467,59 @@ function App() {
       </nav>
 
       <main className="max-w-2xl mx-auto px-4 py-6 md:py-8 min-h-[80vh]">
-        <Greeting />
+        <Greeting lang={lang} />
 
-        {/* Admin Dashboard Stats (Only visible to Admin) */}
         {isAdmin && (
             <AdminStats totalLinks={links.length} totalClicks={totalClicks} />
         )}
 
-        {/* Search & Filter Section */}
         <div className="mb-8 space-y-6">
           {/* Search Bar */}
           <div className="relative group">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-cat-500 transition-colors" />
             <input
               type="text"
-              placeholder="Cari racun apa hari ini miaw?"
+              placeholder={t.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-14 pr-6 py-3.5 md:py-4 bg-white dark:bg-dark-surface rounded-3xl border-2 border-transparent focus:border-cat-300 dark:focus:border-cat-700 shadow-sm focus:shadow-lg focus:shadow-cat-500/10 outline-none transition-all text-sm md:text-base font-medium"
             />
           </div>
 
-          {/* Platform Filter - Pills */}
+          {/* Mood Filter */}
+          {!searchQuery && (
+            <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+               <div className="flex items-center justify-between mb-3 px-1">
+                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                   <Filter className="w-3 h-3" /> {t.moodTitle}
+                 </h3>
+               </div>
+               
+               <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
+                  {MOODS.map((m) => {
+                    const Icon = m.icon;
+                    const isActive = mood === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => setMood(m.id as any)}
+                        className={cn(
+                          "flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all border shadow-sm active:scale-95",
+                          isActive
+                            ? "bg-gray-800 text-white border-gray-800 shadow-lg scale-105"
+                            : cn("hover:border-gray-300 bg-white dark:bg-dark-surface", m.color.replace('bg-', 'hover:bg-').replace('text-', 'hover:text-'))
+                        )}
+                      >
+                        <Icon className={cn("w-4 h-4", isActive ? "text-white" : "text-current opacity-70")} />
+                        {m.label}
+                      </button>
+                    );
+                  })}
+               </div>
+            </div>
+          )}
+
+          {/* Platform Filter */}
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
              {PLATFORMS.map((platform) => (
               <button
@@ -443,7 +528,7 @@ function App() {
                 className={cn(
                   "px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border",
                   selectedPlatform === platform
-                    ? "bg-gray-800 text-white border-gray-800 dark:bg-white dark:text-gray-900"
+                    ? "bg-cat-500 text-white border-cat-500 dark:bg-cat-600"
                     : "bg-white dark:bg-dark-surface text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-400"
                 )}
               >
@@ -452,59 +537,150 @@ function App() {
             ))}
           </div>
 
-          {/* Category Filter - Aesthetic Icons */}
-          <div>
-            <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-3 px-1 flex justify-between items-center">
-                <span>Kategori Gemoy</span>
-                
-                {/* Sorting Toggle */}
-                <button 
-                    onClick={() => setSortBy(prev => prev === 'newest' ? 'popular' : 'newest')}
-                    className="flex items-center gap-1 text-xs bg-white dark:bg-dark-surface px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 hover:text-cat-500 transition-colors"
-                >
-                    <ArrowUpDown className="w-3 h-3" />
-                    {sortBy === 'newest' ? 'Paling Baru' : 'Paling Hype 🔥'}
-                </button>
-            </h3>
-            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-              {CATEGORIES.map((cat) => {
-                const Icon = cat.icon;
-                const isSelected = selectedCategory === cat.id;
-                
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className="flex flex-col items-center gap-2 group"
+          {/* Collapsible Categories Grid */}
+          {!searchQuery && (
+            <div className="animate-in fade-in slide-in-from-top-4 duration-500 bg-white dark:bg-dark-surface rounded-3xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm">
+              <div 
+                onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
+                className="flex justify-between items-center cursor-pointer select-none group"
+              >
+                <div className="flex items-center gap-3">
+                    <h3 className="text-sm font-bold text-gray-600 dark:text-gray-300 flex items-center gap-2">
+                        <LayoutGrid className="w-4 h-4 text-cat-500"/> 
+                        {t.categoryTitle}
+                    </h3>
+                    
+                    {/* Preview Icons when collapsed */}
+                    {!isCategoriesOpen && (
+                        <div className="flex items-center -space-x-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                            {CATEGORIES.slice(1, 5).map((cat) => {
+                                const Icon = cat.icon;
+                                return (
+                                    <div key={cat.id} className={cn("w-7 h-7 rounded-full border-2 border-white dark:border-dark-surface flex items-center justify-center", cat.color)}>
+                                        <Icon className="w-3.5 h-3.5 text-current" />
+                                    </div>
+                                );
+                            })}
+                             <div className="w-7 h-7 rounded-full border-2 border-white dark:border-dark-surface flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-[9px] font-bold text-gray-500">
+                                +4
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="bg-gray-100 dark:bg-gray-800 p-1.5 rounded-full text-gray-400 group-hover:bg-cat-100 group-hover:text-cat-500 transition-colors">
+                    {isCategoriesOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </div>
+              </div>
+
+              <AnimatePresence>
+                {isCategoriesOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
                   >
-                    <div className={cn(
-                      "w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-sm border-2",
-                      isSelected 
-                        ? "bg-cat-500 text-white shadow-cat-500/40 scale-110 border-cat-500" 
-                        : "bg-white dark:bg-dark-surface border-transparent hover:border-cat-200 hover:scale-105",
-                      !isSelected && cat.color.replace('bg-', 'text-')
-                    )}>
-                      <Icon className={cn("w-5 h-5 md:w-6 md:h-6", isSelected ? "text-white" : "")} />
+                    <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 pt-4">
+                      {CATEGORIES.map((cat) => {
+                        const Icon = cat.icon;
+                        const isSelected = selectedCategory === cat.id;
+                        
+                        return (
+                          <button
+                            key={cat.id}
+                            onClick={() => setSelectedCategory(cat.id)}
+                            className="flex flex-col items-center gap-2 group"
+                          >
+                            <div className={cn(
+                              "w-12 h-12 md:w-14 md:h-14 rounded-[18px] flex items-center justify-center transition-all duration-300 shadow-sm border-[1.5px]",
+                              isSelected 
+                                ? "bg-cat-500 text-white shadow-cat-500/40 scale-105 border-cat-500 rotate-3" 
+                                : "bg-gray-50 dark:bg-dark-surface2 border-transparent hover:border-cat-200 hover:scale-105",
+                              !isSelected && cat.color.replace('bg-', 'text-')
+                            )}>
+                              <Icon className={cn("w-5 h-5 md:w-6 md:h-6", isSelected ? "text-white" : "")} />
+                            </div>
+                            <span className={cn(
+                              "text-[9px] md:text-[10px] font-bold text-center leading-tight max-w-[60px]",
+                              isSelected ? "text-cat-600 dark:text-cat-400" : "text-gray-400"
+                            )}>
+                              {cat.label}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
-                    <span className={cn(
-                      "text-[9px] md:text-[10px] font-bold text-center leading-tight max-w-[60px]",
-                      isSelected ? "text-cat-600 dark:text-cat-400" : "text-gray-400"
-                    )}>
-                      {cat.label}
-                    </span>
-                  </button>
-                );
-              })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+          )}
+
+          {/* Action Buttons (Wishlist & Sort) - Redesigned */}
+          <div className="flex gap-3">
+             <button 
+                onClick={() => setShowWishlistOnly(!showWishlistOnly)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm transition-all shadow-sm active:scale-95 border-2",
+                  showWishlistOnly 
+                    ? "bg-pink-500 text-white border-pink-500 shadow-pink-500/30" 
+                    : "bg-white dark:bg-dark-surface text-gray-600 dark:text-gray-300 border-gray-100 dark:border-gray-700 hover:border-pink-200"
+                )}
+            >
+                <Heart className={cn("w-4 h-4", showWishlistOnly ? "fill-current animate-bounce" : "text-pink-400")} />
+                {lang === 'jv' ? 'Disimpen' : 'Disimpen'}
+            </button>
+
+            <button 
+                onClick={() => setSortBy(prev => prev === 'newest' ? 'popular' : 'newest')}
+                className={cn(
+                    "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm transition-all shadow-sm active:scale-95 border-2",
+                    sortBy === 'popular'
+                     ? "bg-purple-500 text-white border-purple-500 shadow-purple-500/30"
+                     : "bg-white dark:bg-dark-surface text-gray-600 dark:text-gray-300 border-gray-100 dark:border-gray-700 hover:border-purple-200"
+                )}
+            >
+                <ArrowUpDown className={cn("w-4 h-4", sortBy === 'popular' ? "text-white" : "text-purple-400")} />
+                {sortBy === 'newest' ? t.sortNewest : t.sortPopular}
+            </button>
           </div>
         </div>
 
-        {/* Links List */}
+        {/* GACHA BANNER - MINIMALIST REDESIGN */}
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+        >
+            <button
+                onClick={handleGacha}
+                className="w-full bg-white dark:bg-dark-surface border-2 border-dashed border-purple-200 dark:border-purple-800/50 p-3 rounded-3xl flex items-center gap-4 group hover:border-purple-400 transition-all shadow-sm hover:shadow-md active:scale-95"
+            >
+                <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 rounded-2xl flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform">
+                    <Dices className="w-6 h-6 text-purple-500" />
+                </div>
+                
+                <div className="flex-1 text-left">
+                    <h3 className="text-xs font-bold text-purple-400 uppercase tracking-wider mb-0.5">Mystery Box</h3>
+                    <p className="text-sm md:text-base font-bold text-gray-700 dark:text-gray-200 line-clamp-1 italic">
+                        "{gachaCta}"
+                    </p>
+                </div>
+
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full text-purple-500">
+                    <ChevronRight className="w-4 h-4" /> 
+                </div> 
+            </button>
+        </motion.div>
+
+        {/* Link Cards List */}
         <div className="space-y-4">
           {loading ? (
             <div className="text-center py-20">
               <div className="animate-spin w-10 h-10 border-4 border-cat-200 border-t-cat-500 rounded-full mx-auto mb-4" />
-              <p className="text-gray-400 animate-pulse font-medium">Lagi ngendus barang-barang lucu...</p>
+              <p className="text-gray-400 animate-pulse font-medium">{t.loadingBtn}</p>
             </div>
           ) : filteredLinks.length > 0 ? (
             filteredLinks.map((link) => (
@@ -515,21 +691,25 @@ function App() {
                 onEdit={openEditModal}
                 onDelete={handleDelete}
                 onTrackClick={handleTrackClick}
+                lang={lang}
+                isWishlisted={wishlist.includes(link.id)}
+                onToggleWishlist={handleToggleWishlist}
               />
             ))
           ) : (
             <div className="text-center py-16 bg-white/50 dark:bg-dark-surface/50 rounded-3xl border-2 border-dashed border-gray-300 dark:border-gray-700">
-              <div className="text-4xl mb-3">😿</div>
-              <p className="text-gray-600 dark:text-gray-300 font-medium">Yah, racunnya gak ketemu miaw...</p>
-              <p className="text-sm text-gray-400 mt-1">Coba cari kata kunci lain atau ganti filter ya!</p>
+              <div className="flex justify-center mb-3">
+                 <Cat className="w-12 h-12 text-gray-300" />
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 font-medium">{t.emptyState}</p>
+              <p className="text-sm text-gray-400 mt-1">{showWishlistOnly ? t.wishlistEmpty : t.emptyStateSub}</p>
             </div>
           )}
         </div>
       </main>
 
-      <Footer />
+      <Footer lang={lang} />
 
-      {/* Scroll to Top Button */}
       <button
         onClick={scrollToTop}
         className={cn(
@@ -544,20 +724,21 @@ function App() {
       <Modal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        title="Masuk Kandang Admin"
+        title={t.loginTitle}
       >
         <form onSubmit={handleLogin} className="space-y-4">
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl text-sm text-blue-600 dark:text-blue-300 mb-4">
-            ℹ️ Ini area khusus majikan (admin). Kamu kucing liar (pengunjung) gak perlu login miaw.
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl text-sm text-blue-600 dark:text-blue-300 mb-4 flex gap-2">
+            <LogIn className="w-5 h-5 shrink-0" />
+            {t.loginDesc}
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Sandi Rahasia</label>
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t.passwordLabel}</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-5 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-cat-500 outline-none transition-all"
-              placeholder="Ssstt... masukin sini"
+              placeholder={t.passwordPlaceholder}
               autoFocus
             />
           </div>
@@ -565,7 +746,7 @@ function App() {
             type="submit"
             className="w-full bg-cat-500 hover:bg-cat-600 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-cat-500/30 flex items-center justify-center gap-2 active:scale-95"
           >
-            <LogIn className="w-5 h-5" /> Gass Masuk
+            <LogIn className="w-5 h-5" /> {t.loginBtn}
           </button>
         </form>
       </Modal>
@@ -574,13 +755,13 @@ function App() {
       <Modal
         isOpen={showLinkModal}
         onClose={() => setShowLinkModal(false)}
-        title={linkForm.id ? "Edit Racun" : "Tambah Racun Baru"}
+        title={linkForm.id ? t.editTitle : t.addTitle}
       >
         <form onSubmit={handleSaveLink} className="space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-              Link Affiliate
-              {isAutoFilling && <span className="ml-2 text-cat-500 text-xs animate-pulse">✨ Lagi mikir...</span>}
+              {t.urlLabel}
+              {isAutoFilling && <span className="ml-2 text-cat-500 text-xs animate-pulse flex items-center gap-1 inline-flex"><Sparkles className="w-3 h-3"/> Lagi mikir...</span>}
             </label>
             <div className="relative">
               <input
@@ -589,7 +770,7 @@ function App() {
                 onChange={(e) => setLinkForm({...linkForm, url: e.target.value})}
                 onBlur={handleUrlBlur}
                 className="w-full pl-4 pr-10 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
-                placeholder="Paste link Shopee/Tokped disini..."
+                placeholder="Paste link Shopee/Tokped..."
                 required
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -597,17 +778,16 @@ function App() {
                   type="button"
                   onClick={handleUrlBlur}
                   className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
-                  title="Auto Fill Manual"
                 >
                   <Wand2 className={cn("w-5 h-5", isAutoFilling ? "text-cat-500 animate-spin" : "")} />
                 </button>
               </div>
             </div>
-            <p className="text-[10px] text-gray-400 mt-1">Paste link, klik ikon tongkat ajaib kalau gak muncul otomatis miaw!</p>
+            <p className="text-[10px] text-gray-400 mt-1">{t.urlHelp}</p>
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Judul Barang</label>
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t.titleLabel}</label>
             <input
               type="text"
               value={linkForm.title || ''}
@@ -619,18 +799,18 @@ function App() {
           </div>
           
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Deskripsi (Opsional)</label>
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t.descLabel}</label>
             <textarea
               value={linkForm.description || ''}
               onChange={(e) => setLinkForm({...linkForm, description: e.target.value})}
               className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none h-24 resize-none"
-              placeholder="Spill dikit kenapa ini wajib dibeli..."
+              placeholder="..."
             />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Kategori</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t.catLabel}</label>
               <select
                 value={linkForm.category || ''}
                 onChange={(e) => setLinkForm({...linkForm, category: e.target.value})}
@@ -638,12 +818,12 @@ function App() {
               >
                 <option value="">✨ Otomatis</option>
                 {CATEGORIES.filter(c => c.id !== 'Semua').map(c => (
-                  <option key={c.id} value={c.id}>{c.id}</option>
+                  <option key={c.id} value={c.id}>{c.label}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Platform</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t.platLabel}</label>
               <select
                 value={linkForm.platform || ''}
                 onChange={(e) => setLinkForm({...linkForm, platform: e.target.value})}
@@ -661,7 +841,7 @@ function App() {
             type="submit"
             className="w-full bg-cat-500 hover:bg-cat-600 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-cat-500/30 mt-4 active:scale-95"
           >
-            {linkForm.id ? 'Simpan Perubahan' : 'Sebar Racun'}
+            {linkForm.id ? t.updateBtn : t.saveBtn}
           </button>
         </form>
       </Modal>
@@ -670,19 +850,19 @@ function App() {
       <Modal
         isOpen={!!showConfirmModal}
         onClose={() => !isSaving && !isDeleting && setShowConfirmModal(null)}
-        title="Konfirmasi Dulu Miaw"
-        zIndex={60} // Higher z-index to sit on top
-        isConfirmation={true} // Special styling
+        title={t.confirmTitle}
+        zIndex={60}
+        isConfirmation={true}
       >
         <div className="text-center">
-          <div className="bg-cat-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl animate-bounce">
-            🐱
+          <div className="bg-cat-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-cat-500 animate-bounce">
+            <Cat className="w-10 h-10" />
           </div>
           <p className="text-gray-600 dark:text-gray-300 mb-8 text-lg font-medium leading-relaxed">
-            {showConfirmModal?.type === 'login' && "Yakin sandinya bener? Jangan ngasal ya!"}
-            {showConfirmModal?.type === 'logout' && "Mau pergi? Nanti siapa yang ngurusin link? 😿"}
-            {showConfirmModal?.type === 'delete' && "Beneran mau hapus racun ini? Sayang loh..."}
-            {showConfirmModal?.type === 'save_link' && "Udah mantep datanya? Gass upload!"}
+            {showConfirmModal?.type === 'login' && t.confirmLogin}
+            {showConfirmModal?.type === 'logout' && t.confirmLogout}
+            {showConfirmModal?.type === 'delete' && t.confirmDelete}
+            {showConfirmModal?.type === 'save_link' && t.confirmSave}
           </p>
           
           <div className="flex gap-3">
@@ -691,7 +871,7 @@ function App() {
               disabled={isSaving || isDeleting}
               className="flex-1 px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
-              Gak Jadi
+              {t.cancelBtn}
             </button>
             <button
               onClick={() => {
@@ -706,10 +886,10 @@ function App() {
               {(isSaving || isDeleting) ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Sabar...</span>
+                  <span>{t.loadingBtn}</span>
                 </>
               ) : (
-                "Gasskeun!"
+                t.confirmBtn
               )}
             </button>
           </div>
