@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
-import { Search, Plus, LogIn, LogOut, Moon, Sun, Cat, Settings, Wand2, Sparkles, Loader2, ArrowUpDown, Share2 } from 'lucide-react';
+import { Search, Plus, LogIn, LogOut, Moon, Sun, Cat, Settings, Wand2, Sparkles, Loader2, ArrowUpDown, Share2, Dices, ArrowUp } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 import { supabase, Link } from './lib/supabase';
 import { Greeting } from './components/Greeting';
 import { LinkCard } from './components/LinkCard';
 import { Modal } from './components/Modal';
+import { AdminStats } from './components/AdminStats';
+import { Footer } from './components/Footer';
 import { 
   cn, 
   CATEGORIES, 
@@ -23,6 +25,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   
   // Loading States for Actions
   const [isSaving, setIsSaving] = useState(false);
@@ -49,6 +52,17 @@ function App() {
     fetchLinks();
     const storedAdmin = localStorage.getItem('isAdmin');
     if (storedAdmin === 'true') setIsAdmin(true);
+
+    // Scroll Listener
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Theme Effect
@@ -85,8 +99,6 @@ function App() {
     if (sortBy === 'popular') {
         result.sort((a, b) => b.clicks - a.clicks);
     } else {
-        // Default newest (based on created_at string comparison usually works for ISO dates, 
-        // but assuming list is already fetched in order, we might just rely on index or re-sort)
         result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
 
@@ -232,9 +244,11 @@ function App() {
     setLinks(prev => prev.map(l => l.id === id ? { ...l, clicks: l.clicks + 1 } : l));
     
     try {
+      // Use RPC for atomic increment
       await supabase.rpc('increment_clicks', { row_id: id });
     } catch (err) {
-      // ignore
+      // Fallback if RPC fails or not exists (though we added migration)
+      console.error("Tracking error", err);
     }
   };
 
@@ -292,6 +306,26 @@ function App() {
     } catch (e) { console.log(e); }
   };
 
+  // GACHA RACUN: Random Pick Feature
+  const handleGacha = () => {
+      if (links.length === 0) return;
+      const randomLink = links[Math.floor(Math.random() * links.length)];
+      
+      // Highlight effect
+      setSearchQuery(randomLink.title);
+      toast.success("🎲 Gacha! Kucing memilihkan ini buat kamu!", { icon: '😸' });
+      
+      // Scroll to top
+      window.scrollTo({ top: 300, behavior: 'smooth' });
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Calculate Stats for Admin
+  const totalClicks = links.reduce((acc, link) => acc + (link.clicks || 0), 0);
+
   return (
     <div className="min-h-screen bg-cat-50 dark:bg-dark-bg transition-colors duration-300 font-sans text-gray-800 dark:text-gray-200">
       <Toaster position="top-center" toastOptions={{
@@ -325,6 +359,15 @@ function App() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Gacha Button (New Feature) */}
+            <button
+                onClick={handleGacha}
+                className="p-2 md:p-2.5 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-500 transition-colors"
+                title="Gacha Racun (Random Pick)"
+            >
+                <Dices className="w-5 h-5" />
+            </button>
+
             <button
                 onClick={handleShareApp}
                 className="p-2 md:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400"
@@ -369,8 +412,13 @@ function App() {
         </div>
       </nav>
 
-      <main className="max-w-2xl mx-auto px-4 py-6 md:py-8 pb-32">
+      <main className="max-w-2xl mx-auto px-4 py-6 md:py-8 min-h-[80vh]">
         <Greeting />
+
+        {/* Admin Dashboard Stats (Only visible to Admin) */}
+        {isAdmin && (
+            <AdminStats totalLinks={links.length} totalClicks={totalClicks} />
+        )}
 
         {/* Search & Filter Section */}
         <div className="mb-8 space-y-6">
@@ -478,6 +526,19 @@ function App() {
           )}
         </div>
       </main>
+
+      <Footer />
+
+      {/* Scroll to Top Button */}
+      <button
+        onClick={scrollToTop}
+        className={cn(
+          "fixed bottom-6 right-6 p-3 bg-cat-500 text-white rounded-full shadow-lg shadow-cat-500/30 transition-all duration-300 hover:bg-cat-600 hover:-translate-y-1 z-40",
+          showScrollTop ? "opacity-100 scale-100" : "opacity-0 scale-0 pointer-events-none"
+        )}
+      >
+        <ArrowUp className="w-6 h-6" />
+      </button>
 
       {/* Login Modal */}
       <Modal

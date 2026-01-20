@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ExternalLink, ShoppingBag, Tag, Edit2, Trash2, ShoppingCart, Share2, Flame, Copy } from 'lucide-react';
+import { ChevronDown, ExternalLink, ShoppingBag, Tag, Edit2, Trash2, ShoppingCart, Share2, Flame, Eye } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { toast } from 'react-hot-toast';
 import { Link } from '../lib/supabase';
@@ -79,9 +79,12 @@ export const LinkCard: React.FC<LinkCardProps> = ({ link, isAdmin, onEdit, onDel
             link.platform === 'Tokopedia' ? "bg-green-50 text-green-500" :
             "bg-blue-50 text-blue-500"
           )}>
-             {/* Hot Badge if clicks > 10 */}
+             {/* Hot Badge logic: 
+                 - Public: Show "HOT" if popular (clicks > 10) but NO number.
+                 - Admin: Always sees numbers, so badge is less critical but still nice.
+             */}
              {link.clicks > 10 && (
-                <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded-bl-lg font-bold z-10 flex items-center gap-0.5">
+                <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded-bl-lg font-bold z-10 flex items-center gap-0.5 animate-pulse">
                     <Flame className="w-2 h-2 fill-current" /> HOT
                 </div>
              )}
@@ -100,12 +103,22 @@ export const LinkCard: React.FC<LinkCardProps> = ({ link, isAdmin, onEdit, onDel
               <span className="text-gray-300">•</span>
               <span className="font-medium text-cat-500">{link.platform}</span>
               
-              {/* Click Counter (Social Proof) */}
-              {link.clicks > 0 && (
+              {/* ADMIN ONLY: Click Counter */}
+              {isAdmin && (
                   <>
                     <span className="text-gray-300">•</span>
-                    <span className="flex items-center gap-1 text-xs text-orange-400 font-bold">
-                        <Flame className="w-3 h-3 fill-current" /> {link.clicks} orang khilaf
+                    <span className="flex items-center gap-1 text-xs text-orange-500 font-bold bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 rounded-md">
+                        <Eye className="w-3 h-3" /> {link.clicks}x diklik
+                    </span>
+                  </>
+              )}
+
+              {/* PUBLIC: Only show generic "Lagi Rame" if popular, no numbers */}
+              {!isAdmin && link.clicks > 20 && (
+                  <>
+                    <span className="text-gray-300">•</span>
+                    <span className="flex items-center gap-1 text-xs text-red-400 font-bold italic">
+                        <Flame className="w-3 h-3 fill-current" /> Lagi Rame!
                     </span>
                   </>
               )}
