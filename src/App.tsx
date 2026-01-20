@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
-import { Search, Plus, LogIn, LogOut, Moon, Sun, Cat, Settings, Wand2, Sparkles, Loader2 } from 'lucide-react';
+import { Search, Plus, LogIn, LogOut, Moon, Sun, Cat, Settings, Wand2, Sparkles, Loader2, ArrowUpDown, Share2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 import { supabase, Link } from './lib/supabase';
@@ -28,10 +28,11 @@ function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
-  // Filters
+  // Filters & Sorting
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [selectedPlatform, setSelectedPlatform] = useState('Semua Platform');
+  const [sortBy, setSortBy] = useState<'newest' | 'popular'>('newest');
 
   // Modals
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -59,9 +60,9 @@ function App() {
     }
   }, [darkMode]);
 
-  // Filter Logic
+  // Filter & Sort Logic
   useEffect(() => {
-    let result = links;
+    let result = [...links]; // Create a copy
 
     if (selectedCategory !== 'Semua') {
       result = result.filter(link => link.category === selectedCategory);
@@ -80,8 +81,17 @@ function App() {
       );
     }
 
+    // Sorting
+    if (sortBy === 'popular') {
+        result.sort((a, b) => b.clicks - a.clicks);
+    } else {
+        // Default newest (based on created_at string comparison usually works for ISO dates, 
+        // but assuming list is already fetched in order, we might just rely on index or re-sort)
+        result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+
     setFilteredLinks(result);
-  }, [links, searchQuery, selectedCategory, selectedPlatform]);
+  }, [links, searchQuery, selectedCategory, selectedPlatform, sortBy]);
 
   // Actions
   const fetchLinks = async () => {
@@ -218,6 +228,9 @@ function App() {
   };
 
   const handleTrackClick = async (id: string) => {
+    // Optimistic update locally
+    setLinks(prev => prev.map(l => l.id === id ? { ...l, clicks: l.clicks + 1 } : l));
+    
     try {
       await supabase.rpc('increment_clicks', { row_id: id });
     } catch (err) {
@@ -263,6 +276,22 @@ function App() {
     setShowLinkModal(true);
   };
 
+  const handleShareApp = async () => {
+    const shareData = {
+        title: 'Miaw Racun 🐱',
+        text: 'Pusat barang gemoy & racun shopee pilihan kucing! Awas kalap miaw.',
+        url: window.location.href
+    };
+    try {
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            await navigator.clipboard.writeText(window.location.href);
+            toast.success("Link web udah dicopy! Sebarin gih.");
+        }
+    } catch (e) { console.log(e); }
+  };
+
   return (
     <div className="min-h-screen bg-cat-50 dark:bg-dark-bg transition-colors duration-300 font-sans text-gray-800 dark:text-gray-200">
       <Toaster position="top-center" toastOptions={{
@@ -277,7 +306,7 @@ function App() {
       {/* Navbar - Optimized for Mobile */}
       <nav className="sticky top-0 z-30 bg-white/90 dark:bg-dark-surface/90 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 px-4 py-3 md:py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 md:gap-3 group cursor-pointer">
+          <div className="flex items-center gap-2 md:gap-3 group cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
             {/* Header Icon */}
             <div className="relative transform transition-transform group-hover:scale-110 duration-300">
               <Cat className="w-8 h-8 md:w-12 md:h-12 text-cat-500 drop-shadow-md" strokeWidth={2.5} />
@@ -296,6 +325,14 @@ function App() {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+                onClick={handleShareApp}
+                className="p-2 md:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400"
+                title="Sebar Web Ini"
+            >
+                <Share2 className="w-5 h-5" />
+            </button>
+
             <button
               onClick={() => setDarkMode(!darkMode)}
               className="p-2 md:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -369,7 +406,18 @@ function App() {
 
           {/* Category Filter - Aesthetic Icons */}
           <div>
-            <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-3 px-1">Kategori Gemoy</h3>
+            <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-3 px-1 flex justify-between items-center">
+                <span>Kategori Gemoy</span>
+                
+                {/* Sorting Toggle */}
+                <button 
+                    onClick={() => setSortBy(prev => prev === 'newest' ? 'popular' : 'newest')}
+                    className="flex items-center gap-1 text-xs bg-white dark:bg-dark-surface px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 hover:text-cat-500 transition-colors"
+                >
+                    <ArrowUpDown className="w-3 h-3" />
+                    {sortBy === 'newest' ? 'Paling Baru' : 'Paling Hype 🔥'}
+                </button>
+            </h3>
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
               {CATEGORIES.map((cat) => {
                 const Icon = cat.icon;
