@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
-import { Search, Plus, LogIn, LogOut, Moon, Sun, Cat, Settings, Wand2, Sparkles } from 'lucide-react';
+import { Search, Plus, LogIn, LogOut, Moon, Sun, Cat, Settings, Wand2, Sparkles, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 import { supabase, Link } from './lib/supabase';
@@ -23,6 +23,10 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  
+  // Loading States for Actions
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -138,9 +142,11 @@ function App() {
   };
 
   const confirmSaveLink = async () => {
+    setIsSaving(true);
     try {
       if (!linkForm.title || !linkForm.url) {
           toast.error("Judul sama Link wajib diisi miaw!");
+          setIsSaving(false);
           return;
       }
 
@@ -180,6 +186,8 @@ function App() {
       console.error('Error saving link:', error);
       toast.error(`Gagal nyimpen: ${error.message || 'Cek koneksi atau database ya miaw.'}`);
       setShowConfirmModal(null);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -189,6 +197,7 @@ function App() {
 
   const confirmDelete = async () => {
     if (!showConfirmModal?.id) return;
+    setIsDeleting(true);
     try {
       const { error } = await supabase
         .from('links')
@@ -203,6 +212,8 @@ function App() {
     } catch (error) {
       console.error('Error deleting:', error);
       toast.error('Gagal ngehapus link');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -549,8 +560,10 @@ function App() {
       {/* Confirmation Modal */}
       <Modal
         isOpen={!!showConfirmModal}
-        onClose={() => setShowConfirmModal(null)}
+        onClose={() => !isSaving && !isDeleting && setShowConfirmModal(null)}
         title="Konfirmasi Dulu Miaw"
+        zIndex={60} // Higher z-index to sit on top
+        isConfirmation={true} // Special styling
       >
         <div className="text-center">
           <div className="bg-cat-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl animate-bounce">
@@ -566,7 +579,8 @@ function App() {
           <div className="flex gap-3">
             <button
               onClick={() => setShowConfirmModal(null)}
-              className="flex-1 px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              disabled={isSaving || isDeleting}
+              className="flex-1 px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
             >
               Gak Jadi
             </button>
@@ -577,9 +591,17 @@ function App() {
                 if (showConfirmModal?.type === 'delete') confirmDelete();
                 if (showConfirmModal?.type === 'save_link') confirmSaveLink();
               }}
-              className="flex-1 px-4 py-3.5 rounded-xl bg-cat-500 text-white font-bold hover:bg-cat-600 transition-all shadow-lg shadow-cat-500/30 active:scale-95"
+              disabled={isSaving || isDeleting}
+              className="flex-1 px-4 py-3.5 rounded-xl bg-cat-500 text-white font-bold hover:bg-cat-600 transition-all shadow-lg shadow-cat-500/30 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Gasskeun!
+              {(isSaving || isDeleting) ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>Sabar...</span>
+                </>
+              ) : (
+                "Gasskeun!"
+              )}
             </button>
           </div>
         </div>

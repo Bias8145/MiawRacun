@@ -80,80 +80,115 @@ export const getCategoryFromTitle = (title: string): string => {
   return 'Racun Shopee 🛍️';
 };
 
-// IMPROVED: Extract product name from URL slug
+// IMPROVED: Extract REAL product name from URL slug
 export const extractInfoFromUrl = (url: string) => {
-  let title = "";
+  let rawTitle = "";
   
   try {
     const urlObj = new URL(url);
     const path = urlObj.pathname;
     const hostname = urlObj.hostname;
 
-    // Shopee Logic
+    // --- Shopee Logic ---
+    // Format: shopee.co.id/Nama-Produk-Yang-Panjang-i.123.456
     if (hostname.includes('shopee') || hostname.includes('shp.ee')) {
-        // Pattern 1: /Product-Name-i.shopID.productID
-        if (path.includes('-i.')) {
-            const slug = path.split('-i.')[0];
-            title = slug.substring(1).replace(/-/g, ' ');
-        } 
-        // Pattern 2: /product-name-cat.catID
-        else {
-             const parts = path.split('/').filter(p => p);
-             const potentialSlug = parts.find(p => p.includes('-') && !p.includes('.'));
-             if (potentialSlug) title = potentialSlug.replace(/-/g, ' ');
+        // Try to find the part before -i.
+        const match = path.match(/\/([^\/]+)-i\./);
+        if (match && match[1]) {
+            rawTitle = match[1];
+        } else {
+            // Fallback: take the segment that looks like a slug (long and has dashes)
+            const segments = path.split('/').filter(s => s.length > 5 && s.includes('-'));
+            if (segments.length > 0) rawTitle = segments[0];
         }
     }
-    // Tokopedia Logic
+    // --- Tokopedia Logic ---
+    // Format: tokopedia.com/shopname/nama-produk-keren
     else if (hostname.includes('tokopedia')) {
-        const parts = path.split('/').filter(p => p);
-        // Usually the last part is the slug
-        const potentialSlug = parts[parts.length - 1];
-        if (potentialSlug && !['product', 'etalase', 'review', 'info'].includes(potentialSlug)) {
-            title = potentialSlug.replace(/-/g, ' ');
+        const segments = path.split('/').filter(s => s);
+        // Usually the last segment is the product slug
+        // Filter out common non-product paths
+        const candidate = segments[segments.length - 1];
+        if (candidate && !['product', 'etalase', 'review', 'info', 'feed'].includes(candidate)) {
+            rawTitle = candidate;
         }
     }
-    // TikTok Shop / Lazada / Generic
+    // --- Lazada Logic ---
+    // Format: lazada.co.id/products/nama-produk-i123.html
+    else if (hostname.includes('lazada')) {
+        const match = path.match(/\/products\/([^\/]+)-i/);
+        if (match && match[1]) {
+            rawTitle = match[1];
+        } else {
+             const segments = path.split('/').filter(s => s.includes('-'));
+             if(segments.length > 0) rawTitle = segments[segments.length - 1];
+        }
+    }
+    // --- TikTok Shop / Generic ---
     else {
-        const parts = path.split('/').filter(p => p);
-        const lastPart = parts[parts.length - 1];
+        const segments = path.split('/').filter(s => s);
+        const lastPart = segments[segments.length - 1];
         if (lastPart) {
-            let cleanPart = lastPart.split('?')[0].replace(/\.html|\.php|\.htm/g, '');
-            title = cleanPart.replace(/[-_]/g, ' ');
+            // Remove file extensions like .html
+            rawTitle = lastPart.split('?')[0].replace(/\.html|\.php|\.htm/g, '');
         }
     }
+
+    // --- CLEANUP PROCESS ---
+    if (rawTitle) {
+        // 1. Decode URI (e.g. %20 -> space)
+        try { rawTitle = decodeURIComponent(rawTitle); } catch(e) {}
+
+        // 2. Replace dashes/underscores/plus with spaces
+        rawTitle = rawTitle.replace(/[-_+]/g, ' ');
+
+        // 3. Remove ID numbers at the end (common in e-commerce slugs)
+        // e.g. "baju-kucing-123456" -> "baju kucing"
+        rawTitle = rawTitle.replace(/\s\d+$/, ''); 
+
+        // 4. Remove unwanted characters
+        rawTitle = rawTitle.replace(/[^\w\s\u00C0-\u00FF]/g, '');
+
+        // 5. Trim extra spaces
+        rawTitle = rawTitle.replace(/\s+/g, ' ').trim();
+    }
+
   } catch (e) {
-    // If URL is invalid, we can't parse it
     console.log("URL parse error:", e);
   }
 
-  // Fallback if title is still empty
-  if (!title || title.length < 3) {
+  // --- GENERATE CONTENT ---
+  
+  // If we couldn't find a title (e.g. short link shp.ee/xyz), use a fallback
+  if (!rawTitle || rawTitle.length < 3) {
       const platform = getPlatformFromUrl(url);
-      title = `Racun ${platform} Misterius`;
+      rawTitle = `Racun ${platform} Misterius`;
   }
 
-  // Clean up title
-  if (title) {
-    try {
-        title = decodeURIComponent(title);
-    } catch (e) { /* ignore */ }
-
-    title = title.replace(/\s\d+$/, ''); // Remove trailing numbers
-    title = title.replace(/\+/g, ' '); // Replace plus signs
-    title = title.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase()))); // Capitalize
-    
-    if (title.length > 35) {
-        title = title.substring(0, 35).trim() + "...";
-    }
-
-    const randomSuffix = SLANG_SUFFIXES[Math.floor(Math.random() * SLANG_SUFFIXES.length)];
-    const finalTitle = `${title} ${randomSuffix}`;
-
-    const randomDescTemplate = CAT_DESCRIPTIONS[Math.floor(Math.random() * CAT_DESCRIPTIONS.length)];
-    const finalDesc = randomDescTemplate.replace('{item}', title);
-
-    return { title: finalTitle, description: finalDesc };
+  // Capitalize Words
+  let prettyTitle = rawTitle.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+  
+  // Truncate if too long for the title field
+  if (prettyTitle.length > 40) {
+      prettyTitle = prettyTitle.substring(0, 40).trim() + "...";
   }
 
-  return null;
+  // Add Random Slang Suffix
+  const randomSuffix = SLANG_SUFFIXES[Math.floor(Math.random() * SLANG_SUFFIXES.length)];
+  const finalTitle = `${prettyTitle} ${randomSuffix}`;
+
+  // Generate Description based on the REAL Title
+  // We use the slightly longer rawTitle for the description to be more descriptive
+  let descTitle = rawTitle.length > 50 ? rawTitle.substring(0, 50) + "..." : rawTitle;
+  // Capitalize for description too
+  descTitle = descTitle.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+
+  const randomDescTemplate = CAT_DESCRIPTIONS[Math.floor(Math.random() * CAT_DESCRIPTIONS.length)];
+  const finalDesc = randomDescTemplate.replace('{item}', descTitle);
+
+  return { 
+      title: finalTitle, 
+      description: finalDesc,
+      originalTitle: rawTitle // Return this to help with category guessing
+  };
 };
