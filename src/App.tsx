@@ -353,6 +353,8 @@ function App() {
     
     // Simulate "Thinking" delay
     setTimeout(() => {
+      // Pass the current title to the generator.
+      // The generator will strip existing suffixes before adding new ones.
       const generated = generateContentFromTitle(linkForm.title!);
       
       if (generated) {
