@@ -54,7 +54,7 @@ export const Modal: React.FC<ModalProps> = ({
                 ? "max-w-sm bg-white/95 dark:bg-dark-surface/95 backdrop-blur-2xl shadow-cat-500/20" 
                 : "max-w-md bg-white dark:bg-dark-surface"
             )}>
-              <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800 relative">
                 <h2 className={cn(
                   "font-bold text-gray-800 dark:text-white",
                   isConfirmation ? "text-lg text-center w-full" : "text-xl"
@@ -64,9 +64,13 @@ export const Modal: React.FC<ModalProps> = ({
                 {!isConfirmation && (
                   <button 
                     onClick={onClose}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors absolute right-4"
+                    className="absolute right-4 top-4 group"
+                    title="Gulung Balik (Tutup)"
                   >
-                    <X className="w-5 h-5 text-gray-500" />
+                    {/* Yarn Ball Style Close Button */}
+                    <div className="w-10 h-10 bg-rose-50 dark:bg-rose-900/20 rounded-full border-2 border-dashed border-rose-300 dark:border-rose-700 flex items-center justify-center text-rose-400 group-hover:rotate-180 transition-transform duration-700 ease-in-out shadow-sm group-hover:bg-rose-100 dark:group-hover:bg-rose-900/40">
+                      <X className="w-5 h-5" />
+                    </div>
                   </button>
                 )}
               </div>
