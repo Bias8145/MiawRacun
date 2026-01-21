@@ -80,32 +80,32 @@ export const LinkCard: React.FC<LinkCardProps> = ({
     }
   };
 
-  // Helper for Platform Styles (Aesthetic 3D Stickers)
+  // Helper for Platform Styles (GLOSSY PILL / JELLY BEAN STYLE)
   const getPlatformConfig = (platform: string) => {
     switch(platform) {
       case 'Shopee': 
         return {
-          className: 'bg-gradient-to-b from-orange-400 to-orange-500 text-white shadow-orange-500/30 border-orange-700',
+          className: 'bg-orange-500 text-white shadow-orange-500/40',
           icon: ShoppingBag
         };
       case 'Tokopedia': 
         return {
-          className: 'bg-gradient-to-b from-green-400 to-green-500 text-white shadow-green-500/30 border-green-700',
+          className: 'bg-green-500 text-white shadow-green-500/40',
           icon: Store
         };
       case 'Lazada': 
         return {
-          className: 'bg-gradient-to-b from-blue-500 to-blue-600 text-white shadow-blue-600/30 border-blue-800',
+          className: 'bg-blue-600 text-white shadow-blue-600/40',
           icon: Heart
         };
       case 'TikTok Shop': 
         return {
-          className: 'bg-gradient-to-b from-gray-800 to-black text-white shadow-gray-500/30 border-gray-900',
+          className: 'bg-black text-white shadow-gray-900/40',
           icon: PlayCircle
         };
       default: 
         return {
-          className: 'bg-gradient-to-b from-purple-400 to-purple-500 text-white shadow-purple-500/30 border-purple-700',
+          className: 'bg-purple-500 text-white shadow-purple-500/40',
           icon: ExternalLink
         };
     }
@@ -152,13 +152,16 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                 <Tag className="w-3 h-3" /> {link.category.replace(/ .*/, '')}
               </span>
               
-              {/* Aesthetic Platform Badge - REDESIGNED */}
+              {/* Aesthetic Platform Badge - GLOSSY PILL STYLE */}
               <span className={cn(
-                "px-3 py-1 rounded-xl text-[10px] font-black shadow-[0_2px_0_0_rgba(0,0,0,0.1)] border-b-[3px] transform active:scale-95 transition-all flex items-center gap-1.5 tracking-wide",
+                "px-3 py-1 rounded-full text-[10px] font-bold shadow-lg transform active:scale-95 transition-all flex items-center gap-1.5 tracking-wide relative overflow-hidden",
                 platformConfig.className
               )}>
-                <PlatformIcon className="w-3 h-3 fill-white/20" />
-                {link.platform}
+                {/* Shine Effect */}
+                <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-white/30 to-transparent" />
+                
+                <PlatformIcon className="w-3 h-3 fill-white/20 relative z-10" />
+                <span className="relative z-10">{link.platform}</span>
               </span>
               
               {isAdmin && (

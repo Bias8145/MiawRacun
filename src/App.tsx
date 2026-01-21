@@ -5,7 +5,7 @@ import {
   Wand2, Sparkles, Loader2, ArrowUpDown, Share2, Dices, 
   ArrowUp, Heart, Gem, Wallet, HeartCrack, Smile, PiggyBank,
   Filter, HeartHandshake, LayoutGrid, ChevronDown, ChevronUp,
-  ShoppingBag, ChevronRight
+  ShoppingBag, ChevronRight, Ticket
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -648,7 +648,7 @@ function App() {
           </div>
         </div>
 
-        {/* GACHA BANNER - MINIMALIST REDESIGN */}
+        {/* GACHA BANNER - TICKET STYLE REDESIGN */}
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -656,22 +656,34 @@ function App() {
         >
             <button
                 onClick={handleGacha}
-                className="w-full bg-white dark:bg-dark-surface border-2 border-dashed border-purple-200 dark:border-purple-800/50 p-3 rounded-3xl flex items-center gap-4 group hover:border-purple-400 transition-all shadow-sm hover:shadow-md active:scale-95"
+                className="w-full relative bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl shadow-lg shadow-purple-500/20 flex overflow-hidden group hover:scale-[1.02] transition-transform duration-300"
             >
-                <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 rounded-2xl flex items-center justify-center shrink-0 group-hover:rotate-12 transition-transform">
-                    <Dices className="w-6 h-6 text-purple-500" />
-                </div>
-                
-                <div className="flex-1 text-left">
-                    <h3 className="text-xs font-bold text-purple-400 uppercase tracking-wider mb-0.5">Mystery Box</h3>
-                    <p className="text-sm md:text-base font-bold text-gray-700 dark:text-gray-200 line-clamp-1 italic">
-                        "{gachaCta}"
-                    </p>
+                {/* Ticket Notches */}
+                <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-cat-50 dark:bg-dark-bg rounded-full z-10" />
+                <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-cat-50 dark:bg-dark-bg rounded-full z-10" />
+
+                {/* Left Side (Icon) */}
+                <div className="w-20 bg-black/10 flex items-center justify-center border-r-2 border-dashed border-white/30 relative">
+                     <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:rotate-180 transition-transform duration-500">
+                        <Dices className="w-5 h-5 text-white" />
+                     </div>
                 </div>
 
-                <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full text-purple-500">
-                    <ChevronRight className="w-4 h-4" /> 
-                </div> 
+                {/* Right Side (Content) */}
+                <div className="flex-1 p-4 flex items-center justify-between">
+                    <div className="text-left">
+                        <div className="flex items-center gap-2 mb-1">
+                            <Ticket className="w-3 h-3 text-purple-200" />
+                            <span className="text-[10px] font-bold text-purple-200 uppercase tracking-widest">Mystery Ticket</span>
+                        </div>
+                        <p className="text-sm md:text-base font-bold text-white italic drop-shadow-sm">
+                            "{gachaCta}"
+                        </p>
+                    </div>
+                    <div className="bg-white/20 p-2 rounded-full text-white backdrop-blur-sm group-hover:bg-white group-hover:text-purple-600 transition-colors">
+                        <ChevronRight className="w-4 h-4" />
+                    </div>
+                </div>
             </button>
         </motion.div>
 
