@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// --- Categories with Icons (REMOVED EMOJIS FROM LABELS) ---
+// --- Categories with Icons ---
 export const CATEGORIES = [
   { id: 'Semua', label: 'Semua', icon: ShoppingBag, color: 'bg-gray-100 text-gray-600' },
   { id: 'OOTD Kece', label: 'OOTD Kece', icon: Shirt, color: 'bg-pink-100 text-pink-500' },
@@ -24,7 +24,7 @@ export const CATEGORIES = [
 
 export const PLATFORMS = ['Semua Platform', 'Shopee', 'Tokopedia', 'Lazada', 'TikTok Shop', 'Lainnya'];
 
-// --- Auto-Fill Logic ---
+// --- Auto-Fill Logic (Miaw Slang) ---
 
 const SLANG_SUFFIXES = [
   "Gemoy Parah Miaw!",
@@ -80,89 +80,23 @@ export const getCategoryFromTitle = (title: string): string => {
   return 'Racun Shopee';
 };
 
-// IMPROVED: Extract REAL product name from URL slug
-export const extractInfoFromUrl = (url: string) => {
-  let rawTitle = "";
+// NEW: Generate Content based on Manual Title Input
+export const generateContentFromTitle = (manualTitle: string) => {
+  if (!manualTitle || manualTitle.trim().length === 0) return null;
+
+  // 1. Clean and Capitalize Title
+  const prettyTitle = manualTitle.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
   
-  try {
-    const urlObj = new URL(url);
-    const path = urlObj.pathname;
-    const hostname = urlObj.hostname;
-
-    // --- Shopee Logic ---
-    if (hostname.includes('shopee') || hostname.includes('shp.ee')) {
-        const match = path.match(/\/([^\/]+)-i\./);
-        if (match && match[1]) {
-            rawTitle = match[1];
-        } else {
-            const segments = path.split('/').filter(s => s.length > 5 && s.includes('-'));
-            if (segments.length > 0) rawTitle = segments[0];
-        }
-    }
-    // --- Tokopedia Logic ---
-    else if (hostname.includes('tokopedia')) {
-        const segments = path.split('/').filter(s => s);
-        const candidate = segments[segments.length - 1];
-        if (candidate && !['product', 'etalase', 'review', 'info', 'feed'].includes(candidate)) {
-            rawTitle = candidate;
-        }
-    }
-    // --- Lazada Logic ---
-    else if (hostname.includes('lazada')) {
-        const match = path.match(/\/products\/([^\/]+)-i/);
-        if (match && match[1]) {
-            rawTitle = match[1];
-        } else {
-             const segments = path.split('/').filter(s => s.includes('-'));
-             if(segments.length > 0) rawTitle = segments[segments.length - 1];
-        }
-    }
-    // --- TikTok Shop / Generic ---
-    else {
-        const segments = path.split('/').filter(s => s);
-        const lastPart = segments[segments.length - 1];
-        if (lastPart) {
-            rawTitle = lastPart.split('?')[0].replace(/\.html|\.php|\.htm/g, '');
-        }
-    }
-
-    // --- CLEANUP PROCESS ---
-    if (rawTitle) {
-        try { rawTitle = decodeURIComponent(rawTitle); } catch(e) {}
-        rawTitle = rawTitle.replace(/[-_+]/g, ' ');
-        rawTitle = rawTitle.replace(/\s\d+$/, ''); 
-        rawTitle = rawTitle.replace(/[^\w\s\u00C0-\u00FF]/g, '');
-        rawTitle = rawTitle.replace(/\s+/g, ' ').trim();
-    }
-
-  } catch (e) {
-    console.log("URL parse error:", e);
-  }
-
-  // --- GENERATE CONTENT ---
-  if (!rawTitle || rawTitle.length < 3) {
-      const platform = getPlatformFromUrl(url);
-      rawTitle = `Racun ${platform} Misterius`;
-  }
-
-  let prettyTitle = rawTitle.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
-  
-  if (prettyTitle.length > 40) {
-      prettyTitle = prettyTitle.substring(0, 40).trim() + "...";
-  }
-
+  // 2. Add Random Slang Suffix
   const randomSuffix = SLANG_SUFFIXES[Math.floor(Math.random() * SLANG_SUFFIXES.length)];
-  const finalTitle = `${prettyTitle} ${randomSuffix}`;
+  const finalTitle = `${prettyTitle} - ${randomSuffix}`;
 
-  let descTitle = rawTitle.length > 50 ? rawTitle.substring(0, 50) + "..." : rawTitle;
-  descTitle = descTitle.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
-
+  // 3. Generate Description
   const randomDescTemplate = CAT_DESCRIPTIONS[Math.floor(Math.random() * CAT_DESCRIPTIONS.length)];
-  const finalDesc = randomDescTemplate.replace('{item}', descTitle);
+  const finalDesc = randomDescTemplate.replace('{item}', prettyTitle);
 
   return { 
       title: finalTitle, 
       description: finalDesc,
-      originalTitle: rawTitle 
   };
 };

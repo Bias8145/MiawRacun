@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import { 
   LogIn, LogOut, Moon, Sun, Settings, 
-  Wand2, Sparkles, Loader2, ArrowUpDown, Share2, Dices, 
+  Wand2, Sparkles, Loader2, ArrowUpDown, Dices, 
   ArrowUp, Heart, Gem, Wallet, HeartCrack, Smile,
   ListFilter, CheckCircle2, PawPrint, LayoutGrid, ChevronDown, ChevronUp,
   ShoppingBag, ChevronRight, Ticket, Store, PlayCircle, ExternalLink, Layers,
-  Flame, Clock, HeartHandshake, Plus, Cat // ADDED MISSING IMPORT: Cat
+  Flame, Clock, HeartHandshake, Plus, Cat
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -24,7 +24,7 @@ import {
   PLATFORMS, 
   getCategoryFromTitle, 
   getPlatformFromUrl,
-  extractInfoFromUrl 
+  generateContentFromTitle
 } from './utils/helpers';
 import { TRANSLATIONS, Language } from './utils/translations';
 
@@ -47,7 +47,7 @@ function App() {
   const [showWishlistOnly, setShowWishlistOnly] = useState(false);
   
   const [mood, setMood] = useState<'all' | 'sultan' | 'bokek' | 'galau' | 'bucin'>('all');
-  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false); // Default COLLAPSED
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -60,7 +60,7 @@ function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState<{type: string, id?: string} | null>(null);
-  const [showFilterModal, setShowFilterModal] = useState(false); // New Filter Modal State
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   const [password, setPassword] = useState('');
   const [linkForm, setLinkForm] = useState<Partial<Link>>({});
@@ -335,25 +335,38 @@ function App() {
     });
   };
 
+  // UPDATED: Only detect platform on URL blur (No more auto content from URL)
   const handleUrlBlur = () => {
     if (!linkForm.url) return;
-    setIsAutoFilling(true);
     const platform = getPlatformFromUrl(linkForm.url);
-    const extracted = extractInfoFromUrl(linkForm.url);
-    
-    setLinkForm(prev => ({
-      ...prev,
-      platform,
-      ...(extracted?.title ? { title: extracted.title } : {}),
-      ...(extracted?.description ? { description: extracted.description } : {})
-    }));
+    setLinkForm(prev => ({ ...prev, platform }));
+  };
 
-    if (extracted?.title) {
-      const category = getCategoryFromTitle(extracted.title);
-      setLinkForm(prev => ({ ...prev, category }));
+  // NEW: Trigger Auto Content from Title (Manual Trigger)
+  const handleAutoContent = () => {
+    if (!linkForm.title || linkForm.title.trim().length < 3) {
+      toast.error("Isi nama barang dulu miaw!", { icon: '😿' });
+      return;
     }
 
-    setTimeout(() => setIsAutoFilling(false), 800);
+    setIsAutoFilling(true);
+    
+    // Simulate "Thinking" delay
+    setTimeout(() => {
+      const generated = generateContentFromTitle(linkForm.title!);
+      
+      if (generated) {
+        setLinkForm(prev => ({
+          ...prev,
+          title: generated.title,
+          description: generated.description,
+          category: getCategoryFromTitle(generated.title)
+        }));
+        toast.success("Judul & Deskripsi berhasil disulap!", { icon: '✨' });
+      }
+      
+      setIsAutoFilling(false);
+    }, 800);
   };
 
   const openEditModal = (link: Link) => {
@@ -405,7 +418,7 @@ function App() {
     { id: 'bucin', label: t.moodBucin, icon: HeartHandshake, color: 'bg-rose-50 text-rose-600 border-rose-200' },
   ];
 
-  // PLATFORM CONFIG for Filter Bar (FLAT PASTEL STYLE)
+  // PLATFORM CONFIG for Filter Bar
   const getPlatformStyle = (p: string) => {
     switch(p) {
         case 'Shopee': return { icon: ShoppingBag, color: 'bg-orange-100 border-orange-200 text-orange-600' };
@@ -435,7 +448,6 @@ function App() {
       <nav className="sticky top-0 z-30 bg-white/90 dark:bg-dark-surface/90 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 px-4 py-3 md:py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-3 group cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
-            {/* REDESIGNED LOGO: Paw Print instead of redundant Cat Face */}
             <div className="relative transform transition-transform group-hover:scale-110 duration-300">
               <div className="bg-cat-100 dark:bg-cat-900/30 p-2 rounded-xl">
                  <PawPrint className="w-5 h-5 md:w-6 md:h-6 text-cat-500" strokeWidth={2.5} />
@@ -498,9 +510,8 @@ function App() {
         )}
 
         <div className="mb-8 space-y-6">
-          {/* 1. SEARCH BAR WITH INTEGRATED FILTER & CAT EARS */}
+          {/* SEARCH BAR */}
           <div className="relative pt-3">
-             {/* Cat Ears Decoration */}
              <div className="absolute top-0 left-6 flex gap-12 pointer-events-none z-0">
                 <div className="w-8 h-6 bg-white dark:bg-dark-surface rounded-t-full transform -rotate-12 border-t border-l border-gray-100 dark:border-gray-700 shadow-sm" />
                 <div className="w-8 h-6 bg-white dark:bg-dark-surface rounded-t-full transform rotate-12 border-t border-r border-gray-100 dark:border-gray-700 shadow-sm" />
@@ -539,7 +550,7 @@ function App() {
             </div>
           </div>
 
-          {/* 2. COLLAPSIBLE CATEGORIES */}
+          {/* COLLAPSIBLE CATEGORIES */}
           {!searchQuery && (
             <div className="animate-in fade-in slide-in-from-top-4 duration-500 bg-white dark:bg-dark-surface rounded-3xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm">
               <div 
@@ -620,13 +631,12 @@ function App() {
           )}
         </div>
 
-        {/* 3. GACHA & WISHLIST ROW (Improved Mobile Layout) */}
+        {/* GACHA & WISHLIST ROW */}
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-6 flex gap-3 h-[72px]"
         >
-             {/* Wishlist Button (Compact Square-ish) */}
             <button 
                 onClick={() => setShowWishlistOnly(!showWishlistOnly)}
                 className={cn(
@@ -640,27 +650,17 @@ function App() {
                 <span>{t.wishlistLabel}</span>
             </button>
 
-            {/* Gacha Ticket (Responsive & Compact) */}
             <button
                 onClick={handleGacha}
                 className="flex-1 relative group active:scale-[0.98] transition-transform min-w-0"
             >
-                {/* Ticket Body */}
                 <div className="w-full h-full bg-indigo-500 rounded-2xl flex items-center p-1 relative overflow-hidden shadow-lg shadow-indigo-200 dark:shadow-none">
-                    {/* Inner Dashed Border */}
                     <div className="w-full h-full border-2 border-dashed border-white/30 rounded-xl flex items-center relative">
-                        
-                        {/* Left Section (Icon) */}
                         <div className="w-14 md:w-16 h-full flex items-center justify-center border-r-2 border-dashed border-white/30 relative shrink-0">
                             <Dices className="text-white w-6 h-6 md:w-7 md:h-7 group-hover:rotate-180 transition-transform duration-500" />
-                            
-                            {/* Top Notch */}
                             <div className="absolute -top-3 -right-2.5 w-5 h-5 bg-cat-50 dark:bg-dark-bg rounded-full z-10" />
-                            {/* Bottom Notch */}
                             <div className="absolute -bottom-3 -right-2.5 w-5 h-5 bg-cat-50 dark:bg-dark-bg rounded-full z-10" />
                         </div>
-
-                        {/* Right Section (Text) */}
                         <div className="flex-1 px-3 md:px-4 flex flex-col justify-center text-left overflow-hidden">
                             <div className="flex items-center gap-1 mb-0.5">
                                 <Ticket className="w-3 h-3 text-indigo-200 shrink-0" />
@@ -670,8 +670,6 @@ function App() {
                                 "{gachaCta}"
                             </p>
                         </div>
-
-                        {/* Decorative Arrow */}
                         <div className="pr-3 md:pr-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all hidden sm:block">
                              <ChevronRight className="w-5 h-5 text-white" />
                         </div>
@@ -725,14 +723,13 @@ function App() {
         <ArrowUp className="w-6 h-6" />
       </button>
 
-      {/* FILTER MODAL - REDESIGNED (Flat & Aesthetic) */}
+      {/* FILTER MODAL */}
       <Modal
         isOpen={showFilterModal}
         onClose={() => setShowFilterModal(false)}
         title="Control Panel Babu"
       >
         <div className="space-y-6">
-            {/* Sort Section */}
             <div>
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <ArrowUpDown className="w-3 h-3" /> Urutkan
@@ -765,7 +762,6 @@ function App() {
                 </div>
             </div>
 
-            {/* Platform Section - FLAT PASTEL STYLE */}
             <div>
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <Layers className="w-3 h-3" /> {t.platLabel}
@@ -783,7 +779,7 @@ function App() {
                                 className={cn(
                                     "flex items-center gap-2 px-3 py-3 rounded-xl text-xs font-bold transition-all border-2",
                                     isSelected
-                                        ? cn(style.color, "border-opacity-100 bg-opacity-100") // Active: Solid pastel
+                                        ? cn(style.color, "border-opacity-100 bg-opacity-100") 
                                         : "bg-white dark:bg-dark-surface text-gray-500 border-gray-100 dark:border-gray-700 hover:border-gray-200"
                                 )}
                             >
@@ -796,7 +792,6 @@ function App() {
                 </div>
             </div>
 
-            {/* Mood Section - FLAT PASTEL STYLE */}
             <div>
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <Smile className="w-3 h-3" /> {t.moodTitle}
@@ -824,7 +819,6 @@ function App() {
                 </div>
             </div>
 
-            {/* Reset Button */}
             <button
                 onClick={resetFilters}
                 className="w-full py-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -865,7 +859,7 @@ function App() {
         </form>
       </Modal>
 
-      {/* Add/Edit Link Modal */}
+      {/* Add/Edit Link Modal (UPDATED: Auto Content Logic) */}
       <Modal
         isOpen={showLinkModal}
         onClose={() => setShowLinkModal(false)}
@@ -875,41 +869,46 @@ function App() {
           <div>
             <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
               {t.urlLabel}
+            </label>
+            <input
+              type="url"
+              value={linkForm.url || ''}
+              onChange={(e) => setLinkForm({...linkForm, url: e.target.value})}
+              onBlur={handleUrlBlur}
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
+              placeholder={t.urlPlaceholder}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+              {t.titleLabel}
               {isAutoFilling && <span className="ml-2 text-cat-500 text-xs animate-pulse flex items-center gap-1 inline-flex"><Sparkles className="w-3 h-3"/> Lagi mikir...</span>}
             </label>
             <div className="relative">
               <input
-                type="url"
-                value={linkForm.url || ''}
-                onChange={(e) => setLinkForm({...linkForm, url: e.target.value})}
-                onBlur={handleUrlBlur}
+                type="text"
+                value={linkForm.title || ''}
+                onChange={(e) => setLinkForm({...linkForm, title: e.target.value})}
                 className="w-full pl-4 pr-10 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
-                placeholder={t.urlPlaceholder}
+                placeholder={t.titlePlaceholder}
                 required
               />
+              {/* Wand Button Moved Here */}
               <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                 <button 
                   type="button"
-                  onClick={handleUrlBlur}
-                  className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+                  onClick={handleAutoContent}
+                  disabled={isAutoFilling}
+                  className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors disabled:opacity-50"
+                  title="Auto Generate Title & Description"
                 >
                   <Wand2 className={cn("w-5 h-5", isAutoFilling ? "text-cat-500 animate-spin" : "")} />
                 </button>
               </div>
             </div>
             <p className="text-[10px] text-gray-400 mt-1">{t.urlHelp}</p>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t.titleLabel}</label>
-            <input
-              type="text"
-              value={linkForm.title || ''}
-              onChange={(e) => setLinkForm({...linkForm, title: e.target.value})}
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
-              placeholder={t.titlePlaceholder}
-              required
-            />
           </div>
           
           <div>
