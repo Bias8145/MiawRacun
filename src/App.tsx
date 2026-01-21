@@ -6,7 +6,7 @@ import {
   ArrowUp, Heart, Gem, Wallet, HeartCrack, Smile, PiggyBank,
   Filter, HeartHandshake, LayoutGrid, ChevronDown, ChevronUp,
   ShoppingBag, ChevronRight, Ticket, Store, PlayCircle, ExternalLink, Layers,
-  SlidersHorizontal, X, Flame, Clock, ListFilter, CheckCircle2
+  SlidersHorizontal, X, Flame, Clock, ListFilter, CheckCircle2, PawPrint
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -405,15 +405,15 @@ function App() {
     { id: 'bucin', label: t.moodBucin, icon: HeartHandshake, color: 'bg-rose-50 text-rose-600 border-rose-200' },
   ];
 
-  // PLATFORM CONFIG for Filter Bar
+  // PLATFORM CONFIG for Filter Bar (FLAT PASTEL STYLE)
   const getPlatformStyle = (p: string) => {
     switch(p) {
-        case 'Shopee': return { icon: ShoppingBag, color: 'bg-orange-500 border-orange-500 text-white shadow-orange-500/30' };
-        case 'Tokopedia': return { icon: Store, color: 'bg-green-500 border-green-500 text-white shadow-green-500/30' };
-        case 'Lazada': return { icon: Heart, color: 'bg-blue-600 border-blue-600 text-white shadow-blue-600/30' };
-        case 'TikTok Shop': return { icon: PlayCircle, color: 'bg-black border-black text-white shadow-gray-900/30' };
-        case 'Semua Platform': return { icon: Layers, color: 'bg-cat-500 border-cat-500 text-white shadow-cat-500/30' };
-        default: return { icon: ExternalLink, color: 'bg-purple-500 border-purple-500 text-white shadow-purple-500/30' };
+        case 'Shopee': return { icon: ShoppingBag, color: 'bg-orange-100 border-orange-200 text-orange-600' };
+        case 'Tokopedia': return { icon: Store, color: 'bg-green-100 border-green-200 text-green-600' };
+        case 'Lazada': return { icon: Heart, color: 'bg-blue-100 border-blue-200 text-blue-600' };
+        case 'TikTok Shop': return { icon: PlayCircle, color: 'bg-gray-100 border-gray-200 text-gray-800' };
+        case 'Semua Platform': return { icon: Layers, color: 'bg-cat-100 border-cat-200 text-cat-600' };
+        default: return { icon: ExternalLink, color: 'bg-purple-100 border-purple-200 text-purple-600' };
     }
   };
 
@@ -498,36 +498,44 @@ function App() {
         )}
 
         <div className="mb-8 space-y-6">
-          {/* 1. SEARCH BAR WITH INTEGRATED FILTER */}
-          <div className="relative flex items-center bg-white dark:bg-dark-surface rounded-3xl border-2 border-transparent focus-within:border-cat-300 dark:focus-within:border-cat-700 shadow-sm focus-within:shadow-lg focus-within:shadow-cat-500/10 transition-all">
-            <div className="pl-5 pr-3 text-gray-400">
-                <Search className="w-5 h-5" />
-            </div>
-            <input
-              type="text"
-              placeholder={t.searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full py-3.5 md:py-4 bg-transparent outline-none text-sm md:text-base font-medium text-gray-700 dark:text-gray-200 placeholder-gray-400"
-            />
-            <div className="pr-2 pl-2 border-l border-gray-100 dark:border-gray-700 h-8 flex items-center">
-                <button 
-                    onClick={() => setShowFilterModal(true)}
-                    className={cn(
-                        "h-9 px-3 rounded-xl transition-all flex items-center gap-2 font-bold text-xs relative active:scale-95",
-                        activeFiltersCount > 0 
-                            ? "bg-cat-500 text-white shadow-md shadow-cat-500/20" 
-                            : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
-                    )}
-                >
-                    <ListFilter className="w-4 h-4" />
-                    <span className="hidden sm:inline">Filter</span>
-                    {activeFiltersCount > 0 && (
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full shadow-sm border border-white dark:border-dark-surface">
-                            {activeFiltersCount}
-                        </span>
-                    )}
-                </button>
+          {/* 1. SEARCH BAR WITH INTEGRATED FILTER & CAT EARS */}
+          <div className="relative pt-3">
+             {/* Cat Ears Decoration */}
+             <div className="absolute top-0 left-6 flex gap-12 pointer-events-none z-0">
+                <div className="w-8 h-6 bg-white dark:bg-dark-surface rounded-t-full transform -rotate-12 border-t border-l border-gray-100 dark:border-gray-700 shadow-sm" />
+                <div className="w-8 h-6 bg-white dark:bg-dark-surface rounded-t-full transform rotate-12 border-t border-r border-gray-100 dark:border-gray-700 shadow-sm" />
+             </div>
+
+            <div className="relative z-10 flex items-center bg-white dark:bg-dark-surface rounded-3xl border-2 border-transparent focus-within:border-cat-300 dark:focus-within:border-cat-700 shadow-sm focus-within:shadow-lg focus-within:shadow-cat-500/10 transition-all">
+                <div className="pl-5 pr-3 text-cat-400">
+                    <PawPrint className="w-5 h-5 transform -rotate-12" />
+                </div>
+                <input
+                type="text"
+                placeholder={t.searchPlaceholder}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full py-3.5 md:py-4 bg-transparent outline-none text-sm md:text-base font-medium text-gray-700 dark:text-gray-200 placeholder-gray-400"
+                />
+                <div className="pr-2 pl-2 border-l border-gray-100 dark:border-gray-700 h-8 flex items-center">
+                    <button 
+                        onClick={() => setShowFilterModal(true)}
+                        className={cn(
+                            "h-9 px-3 rounded-xl transition-all flex items-center gap-2 font-bold text-xs relative active:scale-95",
+                            activeFiltersCount > 0 
+                                ? "bg-cat-500 text-white shadow-md shadow-cat-500/20" 
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+                        )}
+                    >
+                        <ListFilter className="w-4 h-4" />
+                        <span className="hidden sm:inline">Filter</span>
+                        {activeFiltersCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full shadow-sm border border-white dark:border-dark-surface">
+                                {activeFiltersCount}
+                            </span>
+                        )}
+                    </button>
+                </div>
             </div>
           </div>
 
@@ -612,58 +620,65 @@ function App() {
           )}
         </div>
 
-        {/* 3. GACHA BANNER */}
+        {/* 3. GACHA & WISHLIST ROW (Improved Mobile Layout) */}
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6"
+            className="mb-6 flex gap-3 h-[72px]"
         >
+             {/* Wishlist Button (Compact Square-ish) */}
+            <button 
+                onClick={() => setShowWishlistOnly(!showWishlistOnly)}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-1 px-3 md:px-4 rounded-2xl font-bold text-[10px] transition-all active:scale-95 border-b-4 relative overflow-hidden group min-w-[70px] md:min-w-[76px]",
+                  showWishlistOnly 
+                    ? "bg-pink-50 text-pink-600 border-pink-300" 
+                    : "bg-white dark:bg-dark-surface text-gray-500 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                )}
+            >
+                <Heart className={cn("w-6 h-6", showWishlistOnly ? "fill-pink-500 text-pink-500 animate-bounce" : "text-gray-300 group-hover:text-pink-400")} />
+                <span>{lang === 'jv' ? 'Disimpen' : 'Disimpen'}</span>
+            </button>
+
+            {/* Gacha Ticket (Responsive & Compact) */}
             <button
                 onClick={handleGacha}
-                className="w-full relative bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl shadow-lg shadow-purple-500/20 flex overflow-hidden group hover:scale-[1.02] transition-transform duration-300"
+                className="flex-1 relative group active:scale-[0.98] transition-transform min-w-0"
             >
-                <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-cat-50 dark:bg-dark-bg rounded-full z-10" />
-                <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-cat-50 dark:bg-dark-bg rounded-full z-10" />
-
-                <div className="w-20 bg-black/10 flex items-center justify-center border-r-2 border-dashed border-white/30 relative">
-                     <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:rotate-180 transition-transform duration-500">
-                        <Dices className="w-5 h-5 text-white" />
-                     </div>
-                </div>
-
-                <div className="flex-1 p-4 flex items-center justify-between">
-                    <div className="text-left">
-                        <div className="flex items-center gap-2 mb-1">
-                            <Ticket className="w-3 h-3 text-purple-200" />
-                            <span className="text-[10px] font-bold text-purple-200 uppercase tracking-widest">Mystery Ticket</span>
+                {/* Ticket Body */}
+                <div className="w-full h-full bg-indigo-500 rounded-2xl flex items-center p-1 relative overflow-hidden shadow-lg shadow-indigo-200 dark:shadow-none">
+                    {/* Inner Dashed Border */}
+                    <div className="w-full h-full border-2 border-dashed border-white/30 rounded-xl flex items-center relative">
+                        
+                        {/* Left Section (Icon) */}
+                        <div className="w-14 md:w-16 h-full flex items-center justify-center border-r-2 border-dashed border-white/30 relative shrink-0">
+                            <Dices className="text-white w-6 h-6 md:w-7 md:h-7 group-hover:rotate-180 transition-transform duration-500" />
+                            
+                            {/* Top Notch */}
+                            <div className="absolute -top-3 -right-2.5 w-5 h-5 bg-cat-50 dark:bg-dark-bg rounded-full z-10" />
+                            {/* Bottom Notch */}
+                            <div className="absolute -bottom-3 -right-2.5 w-5 h-5 bg-cat-50 dark:bg-dark-bg rounded-full z-10" />
                         </div>
-                        <p className="text-sm md:text-base font-bold text-white italic drop-shadow-sm">
-                            "{gachaCta}"
-                        </p>
-                    </div>
-                    <div className="bg-white/20 p-2 rounded-full text-white backdrop-blur-sm group-hover:bg-white group-hover:text-purple-600 transition-colors">
-                        <ChevronRight className="w-4 h-4" />
+
+                        {/* Right Section (Text) */}
+                        <div className="flex-1 px-3 md:px-4 flex flex-col justify-center text-left overflow-hidden">
+                            <div className="flex items-center gap-1 mb-0.5">
+                                <Ticket className="w-3 h-3 text-indigo-200 shrink-0" />
+                                <span className="text-[8px] md:text-[9px] font-black tracking-widest text-indigo-200 uppercase truncate">Mystery Ticket</span>
+                            </div>
+                            <p className="text-xs md:text-sm font-bold text-white italic truncate pr-2">
+                                "{gachaCta}"
+                            </p>
+                        </div>
+
+                        {/* Decorative Arrow */}
+                        <div className="pr-3 md:pr-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all hidden sm:block">
+                             <ChevronRight className="w-5 h-5 text-white" />
+                        </div>
                     </div>
                 </div>
             </button>
         </motion.div>
-
-        {/* 4. CONTROL BAR (Wishlist Only) - Right above List */}
-        <div className="flex gap-3 mb-4">
-            {/* Wishlist Toggle */}
-            <button 
-                onClick={() => setShowWishlistOnly(!showWishlistOnly)}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm transition-all shadow-sm active:scale-95 border-2",
-                  showWishlistOnly 
-                    ? "bg-pink-500 text-white border-pink-500 shadow-pink-500/30" 
-                    : "bg-white dark:bg-dark-surface text-gray-600 dark:text-gray-300 border-gray-100 dark:border-gray-700 hover:border-pink-200"
-                )}
-            >
-                <Heart className={cn("w-4 h-4", showWishlistOnly ? "fill-current animate-bounce" : "text-pink-400")} />
-                {lang === 'jv' ? 'Disimpen' : 'Disimpen'}
-            </button>
-        </div>
 
         {/* Link Cards List */}
         <div className="space-y-4">
@@ -710,7 +725,7 @@ function App() {
         <ArrowUp className="w-6 h-6" />
       </button>
 
-      {/* FILTER MODAL - NEW */}
+      {/* FILTER MODAL - REDESIGNED (Flat & Aesthetic) */}
       <Modal
         isOpen={showFilterModal}
         onClose={() => setShowFilterModal(false)}
@@ -750,7 +765,7 @@ function App() {
                 </div>
             </div>
 
-            {/* Platform Section - Grid Layout */}
+            {/* Platform Section - FLAT PASTEL STYLE */}
             <div>
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <Layers className="w-3 h-3" /> {t.platLabel}
@@ -766,25 +781,22 @@ function App() {
                                 key={platform}
                                 onClick={() => setSelectedPlatform(platform)}
                                 className={cn(
-                                    "flex items-center gap-2 px-3 py-3 rounded-xl text-xs font-bold transition-all border relative overflow-hidden",
+                                    "flex items-center gap-2 px-3 py-3 rounded-xl text-xs font-bold transition-all border-2",
                                     isSelected
-                                        ? cn(style.color, "shadow-md")
-                                        : "bg-white dark:bg-dark-surface text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                                        ? cn(style.color, "border-opacity-100 bg-opacity-100") // Active: Solid pastel
+                                        : "bg-white dark:bg-dark-surface text-gray-500 border-gray-100 dark:border-gray-700 hover:border-gray-200"
                                 )}
                             >
-                                {isSelected && (
-                                    <div className="absolute top-0 left-0 w-full h-[40%] bg-gradient-to-b from-white/30 to-transparent" />
-                                )}
-                                <Icon className={cn("w-3.5 h-3.5 relative z-10", isSelected ? "text-white" : "text-gray-400")} />
-                                <span className="relative z-10">{platform}</span>
-                                {isSelected && <CheckCircle2 className="w-3 h-3 ml-auto text-white relative z-10" />}
+                                <Icon className={cn("w-3.5 h-3.5", isSelected ? "text-current" : "text-gray-400")} />
+                                <span>{platform}</span>
+                                {isSelected && <CheckCircle2 className="w-3 h-3 ml-auto text-current" />}
                             </button>
                         );
                     })}
                 </div>
             </div>
 
-            {/* Mood Section - Grid Layout */}
+            {/* Mood Section - FLAT PASTEL STYLE */}
             <div>
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                     <Smile className="w-3 h-3" /> {t.moodTitle}
@@ -798,13 +810,13 @@ function App() {
                                 key={m.id}
                                 onClick={() => setMood(m.id as any)}
                                 className={cn(
-                                    "flex items-center gap-2 px-3 py-3 rounded-xl text-xs font-bold transition-all border",
+                                    "flex items-center gap-2 px-3 py-3 rounded-xl text-xs font-bold transition-all border-2",
                                     isActive
-                                        ? "bg-gray-800 text-white border-gray-800 shadow-md"
-                                        : cn("bg-white dark:bg-dark-surface hover:border-gray-300", m.color.replace('bg-', 'hover:bg-').replace('text-', 'hover:text-'))
+                                        ? cn(m.color, "border-opacity-100 bg-opacity-100")
+                                        : "bg-white dark:bg-dark-surface text-gray-500 border-gray-100 dark:border-gray-700 hover:border-gray-200"
                                 )}
                             >
-                                <Icon className={cn("w-4 h-4", isActive ? "text-white" : "text-current opacity-70")} />
+                                <Icon className={cn("w-4 h-4", isActive ? "text-current" : "text-gray-400")} />
                                 {m.label}
                             </button>
                         );
