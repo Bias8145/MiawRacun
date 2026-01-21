@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Languages, ChevronDown, Check, Globe } from 'lucide-react';
+import { ChevronDown, Check, Globe } from 'lucide-react';
 import { Language, TRANSLATIONS } from '../utils/translations';
 import { cn } from '../utils/helpers';
 
@@ -25,7 +25,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ currentLang,
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Removed Emoji Flags, using Text Badges
+  // Simplified Language Labels
   const languages: { code: Language; label: string; badge: string }[] = [
     { code: 'id', label: t.langId, badge: 'ID' },
     { code: 'jv', label: t.langJv, badge: 'JV' },
@@ -33,7 +33,8 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ currentLang,
     { code: 'en', label: t.langEn, badge: 'EN' },
   ];
 
-  const currentLangLabel = languages.find(l => l.code === currentLang)?.label.split(' ')[1] || 'Indo';
+  // Just show the language name (e.g. "Indonesia")
+  const currentLangLabel = languages.find(l => l.code === currentLang)?.label || 'Indonesia';
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -79,7 +80,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ currentLang,
                 >
                   <span className="flex items-center gap-3">
                     <span className="text-[10px] font-black bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-500">{lang.badge}</span>
-                    {lang.label.split(' ').slice(1).join(' ')}
+                    {lang.label}
                   </span>
                   {currentLang === lang.code && <Check className="w-4 h-4" />}
                 </button>

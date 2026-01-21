@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import { 
-  Search, Plus, LogIn, LogOut, Moon, Sun, Cat, Settings, 
+  LogIn, LogOut, Moon, Sun, Settings, 
   Wand2, Sparkles, Loader2, ArrowUpDown, Share2, Dices, 
-  ArrowUp, Heart, Gem, Wallet, HeartCrack, Smile, PiggyBank,
-  Filter, HeartHandshake, LayoutGrid, ChevronDown, ChevronUp,
+  ArrowUp, Heart, Gem, Wallet, HeartCrack, Smile,
+  ListFilter, CheckCircle2, PawPrint, LayoutGrid, ChevronDown, ChevronUp,
   ShoppingBag, ChevronRight, Ticket, Store, PlayCircle, ExternalLink, Layers,
-  SlidersHorizontal, X, Flame, Clock, ListFilter, CheckCircle2, PawPrint
+  Flame, Clock, HeartHandshake, Plus, Cat // ADDED MISSING IMPORT: Cat
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -435,17 +435,17 @@ function App() {
       <nav className="sticky top-0 z-30 bg-white/90 dark:bg-dark-surface/90 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 px-4 py-3 md:py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-3 group cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
+            {/* REDESIGNED LOGO: Paw Print instead of redundant Cat Face */}
             <div className="relative transform transition-transform group-hover:scale-110 duration-300">
-              <Cat className="w-8 h-8 md:w-12 md:h-12 text-cat-500 drop-shadow-md" strokeWidth={2.5} />
-              <div className="absolute -top-1 -right-1 text-pink-400 animate-bounce-slow">
-                <Sparkles className="w-4 h-4 md:w-5 md:h-5 fill-current" />
+              <div className="bg-cat-100 dark:bg-cat-900/30 p-2 rounded-xl">
+                 <PawPrint className="w-5 h-5 md:w-6 md:h-6 text-cat-500" strokeWidth={2.5} />
               </div>
             </div>
             <div className="flex flex-col leading-none">
-              <span className="font-black text-xl md:text-3xl tracking-tighter text-cat-500 drop-shadow-sm group-hover:text-cat-600 transition-colors">
+              <span className="font-black text-xl md:text-2xl tracking-tighter text-cat-500 drop-shadow-sm group-hover:text-cat-600 transition-colors">
                 Miaw<span className="text-gray-800 dark:text-white">Racun</span>
               </span>
-              <span className="text-[9px] md:text-[11px] font-bold text-gray-400 tracking-[0.1em] md:tracking-[0.2em] uppercase ml-0.5">
+              <span className="text-[9px] md:text-[10px] font-bold text-gray-400 tracking-widest uppercase ml-0.5">
                 {lang === 'jv' ? 'Pusat Barang Sae' : 'Pusat Barang Gemoy'}
               </span>
             </div>
@@ -528,7 +528,7 @@ function App() {
                         )}
                     >
                         <ListFilter className="w-4 h-4" />
-                        <span className="hidden sm:inline">Filter</span>
+                        <span className="hidden sm:inline">{t.filterBtn}</span>
                         {activeFiltersCount > 0 && (
                             <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full shadow-sm border border-white dark:border-dark-surface">
                                 {activeFiltersCount}
@@ -637,7 +637,7 @@ function App() {
                 )}
             >
                 <Heart className={cn("w-6 h-6", showWishlistOnly ? "fill-pink-500 text-pink-500 animate-bounce" : "text-gray-300 group-hover:text-pink-400")} />
-                <span>{lang === 'jv' ? 'Disimpen' : 'Disimpen'}</span>
+                <span>{t.wishlistLabel}</span>
             </button>
 
             {/* Gacha Ticket (Responsive & Compact) */}
@@ -664,7 +664,7 @@ function App() {
                         <div className="flex-1 px-3 md:px-4 flex flex-col justify-center text-left overflow-hidden">
                             <div className="flex items-center gap-1 mb-0.5">
                                 <Ticket className="w-3 h-3 text-indigo-200 shrink-0" />
-                                <span className="text-[8px] md:text-[9px] font-black tracking-widest text-indigo-200 uppercase truncate">Mystery Ticket</span>
+                                <span className="text-[8px] md:text-[9px] font-black tracking-widest text-indigo-200 uppercase truncate">{t.gachaTicketLabel}</span>
                             </div>
                             <p className="text-xs md:text-sm font-bold text-white italic truncate pr-2">
                                 "{gachaCta}"
@@ -829,7 +829,7 @@ function App() {
                 onClick={resetFilters}
                 className="w-full py-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             >
-                Reset Filter
+                {t.resetBtn}
             </button>
         </div>
       </Modal>
@@ -884,7 +884,7 @@ function App() {
                 onChange={(e) => setLinkForm({...linkForm, url: e.target.value})}
                 onBlur={handleUrlBlur}
                 className="w-full pl-4 pr-10 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
-                placeholder="Paste link Shopee/Tokped..."
+                placeholder={t.urlPlaceholder}
                 required
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -907,7 +907,7 @@ function App() {
               value={linkForm.title || ''}
               onChange={(e) => setLinkForm({...linkForm, title: e.target.value})}
               className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
-              placeholder="Contoh: Baju Kucing Gemoy"
+              placeholder={t.titlePlaceholder}
               required
             />
           </div>
@@ -918,7 +918,7 @@ function App() {
               value={linkForm.description || ''}
               onChange={(e) => setLinkForm({...linkForm, description: e.target.value})}
               className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none h-24 resize-none"
-              placeholder="..."
+              placeholder={t.descPlaceholder}
             />
           </div>
           
@@ -930,7 +930,7 @@ function App() {
                 onChange={(e) => setLinkForm({...linkForm, category: e.target.value})}
                 className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
               >
-                <option value="">✨ Otomatis</option>
+                <option value="">{t.autoOption}</option>
                 {CATEGORIES.filter(c => c.id !== 'Semua').map(c => (
                   <option key={c.id} value={c.id}>{c.label}</option>
                 ))}
@@ -943,7 +943,7 @@ function App() {
                 onChange={(e) => setLinkForm({...linkForm, platform: e.target.value})}
                 className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
               >
-                 <option value="">✨ Otomatis</option>
+                 <option value="">{t.autoOption}</option>
                  {PLATFORMS.filter(p => p !== 'Semua Platform').map(p => (
                    <option key={p} value={p}>{p}</option>
                  ))}

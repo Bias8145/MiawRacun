@@ -137,7 +137,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
           )}>
              {link.clicks > 10 && (
                 <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded-bl-lg font-bold z-10 flex items-center gap-0.5 animate-pulse">
-                    <Flame className="w-2 h-2 fill-current" /> HOT
+                    <Flame className="w-2 h-2 fill-current" /> {t.hotBadge}
                 </div>
              )}
             <ShoppingBag className="w-6 h-6 md:w-7 md:h-7 group-hover:scale-110 transition-transform duration-300" />
@@ -216,7 +216,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
               <div className="bg-white dark:bg-dark-surface p-3 rounded-xl mb-3 border border-gray-100 dark:border-gray-700 relative">
                  <div className="absolute -left-1 top-4 w-1 h-8 bg-cat-400 rounded-r-full"></div>
                  <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300 leading-relaxed italic pl-2">
-                  "{link.description || "Barang bagus nih, rekomendasi banget buat kamu! Cek detailnya langsung ya."}"
+                  "{link.description || t.defaultDesc}"
                 </p>
               </div>
               
@@ -250,13 +250,13 @@ export const LinkCard: React.FC<LinkCardProps> = ({
                       onClick={(e) => { e.stopPropagation(); onEdit(link); }}
                       className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors text-xs font-bold"
                     >
-                      <Edit2 className="w-3 h-3" /> Edit
+                      <Edit2 className="w-3 h-3" /> {t.editBtn}
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); onDelete(link.id); }}
                       className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-xs font-bold"
                     >
-                      <Trash2 className="w-3 h-3" /> Hapus
+                      <Trash2 className="w-3 h-3" /> {t.deleteBtn}
                     </button>
                   </div>
                 )}

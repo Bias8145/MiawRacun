@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, TrendingUp, Package, MousePointer2 } from 'lucide-react';
+import { TrendingUp, Package, MousePointer2 } from 'lucide-react';
 
 interface AdminStatsProps {
   totalLinks: number;
