@@ -5,7 +5,8 @@ import {
   Wand2, Sparkles, Loader2, ArrowUpDown, Share2, Dices, 
   ArrowUp, Heart, Gem, Wallet, HeartCrack, Smile, PiggyBank,
   Filter, HeartHandshake, LayoutGrid, ChevronDown, ChevronUp,
-  ShoppingBag, ChevronRight, Ticket
+  ShoppingBag, ChevronRight, Ticket, Store, PlayCircle, ExternalLink, Layers,
+  SlidersHorizontal, X, Flame, Clock
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -59,6 +60,7 @@ function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState<{type: string, id?: string} | null>(null);
+  const [showFilterModal, setShowFilterModal] = useState(false); // New Filter Modal State
 
   const [password, setPassword] = useState('');
   const [linkForm, setLinkForm] = useState<Partial<Link>>({});
@@ -385,6 +387,13 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const resetFilters = () => {
+      setMood('all');
+      setSelectedPlatform('Semua Platform');
+      setSortBy('newest');
+      setShowFilterModal(false);
+  };
+
   const totalClicks = links.reduce((acc, link) => acc + (link.clicks || 0), 0);
 
   // MOODS with Lucide Icons
@@ -395,6 +404,21 @@ function App() {
     { id: 'galau', label: t.moodGalau, icon: HeartCrack, color: 'bg-slate-50 text-slate-600 border-slate-200' },
     { id: 'bucin', label: t.moodBucin, icon: HeartHandshake, color: 'bg-rose-50 text-rose-600 border-rose-200' },
   ];
+
+  // PLATFORM CONFIG for Filter Bar
+  const getPlatformStyle = (p: string) => {
+    switch(p) {
+        case 'Shopee': return { icon: ShoppingBag, color: 'bg-orange-500 border-orange-500 text-white shadow-orange-500/30' };
+        case 'Tokopedia': return { icon: Store, color: 'bg-green-500 border-green-500 text-white shadow-green-500/30' };
+        case 'Lazada': return { icon: Heart, color: 'bg-blue-600 border-blue-600 text-white shadow-blue-600/30' };
+        case 'TikTok Shop': return { icon: PlayCircle, color: 'bg-black border-black text-white shadow-gray-900/30' };
+        case 'Semua Platform': return { icon: Layers, color: 'bg-cat-500 border-cat-500 text-white shadow-cat-500/30' };
+        default: return { icon: ExternalLink, color: 'bg-purple-500 border-purple-500 text-white shadow-purple-500/30' };
+    }
+  };
+
+  // Count active filters for badge
+  const activeFiltersCount = (mood !== 'all' ? 1 : 0) + (selectedPlatform !== 'Semua Platform' ? 1 : 0) + (sortBy !== 'newest' ? 1 : 0);
 
   return (
     <div className="min-h-screen bg-cat-50 dark:bg-dark-bg transition-colors duration-300 font-sans text-gray-800 dark:text-gray-200 pb-20">
@@ -474,70 +498,74 @@ function App() {
         )}
 
         <div className="mb-8 space-y-6">
-          {/* Search Bar */}
-          <div className="relative group">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-cat-500 transition-colors" />
+          {/* 1. SEARCH BAR */}
+          <div className="relative flex items-center bg-white dark:bg-dark-surface rounded-3xl border-2 border-transparent focus-within:border-cat-300 dark:focus-within:border-cat-700 shadow-sm focus-within:shadow-lg focus-within:shadow-cat-500/10 transition-all">
+            <div className="pl-5 pr-3 text-gray-400">
+                <Search className="w-5 h-5" />
+            </div>
             <input
               type="text"
               placeholder={t.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-14 pr-6 py-3.5 md:py-4 bg-white dark:bg-dark-surface rounded-3xl border-2 border-transparent focus:border-cat-300 dark:focus:border-cat-700 shadow-sm focus:shadow-lg focus:shadow-cat-500/10 outline-none transition-all text-sm md:text-base font-medium"
+              className="w-full py-3.5 md:py-4 bg-transparent outline-none text-sm md:text-base font-medium text-gray-700 dark:text-gray-200 placeholder-gray-400"
             />
-          </div>
-
-          {/* Mood Filter */}
-          {!searchQuery && (
-            <div className="animate-in fade-in slide-in-from-top-2 duration-500">
-               <div className="flex items-center justify-between mb-3 px-1">
-                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                   <Filter className="w-3 h-3" /> {t.moodTitle}
-                 </h3>
-               </div>
-               
-               <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
-                  {MOODS.map((m) => {
-                    const Icon = m.icon;
-                    const isActive = mood === m.id;
-                    return (
-                      <button
-                        key={m.id}
-                        onClick={() => setMood(m.id as any)}
-                        className={cn(
-                          "flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold whitespace-nowrap transition-all border shadow-sm active:scale-95",
-                          isActive
-                            ? "bg-gray-800 text-white border-gray-800 shadow-lg scale-105"
-                            : cn("hover:border-gray-300 bg-white dark:bg-dark-surface", m.color.replace('bg-', 'hover:bg-').replace('text-', 'hover:text-'))
-                        )}
-                      >
-                        <Icon className={cn("w-4 h-4", isActive ? "text-white" : "text-current opacity-70")} />
-                        {m.label}
-                      </button>
-                    );
-                  })}
-               </div>
+            <div className="pr-2 pl-2 border-l border-gray-100 dark:border-gray-700 h-8 flex items-center">
+                <button 
+                    onClick={() => setShowFilterModal(true)}
+                    className={cn(
+                        "p-2 rounded-xl transition-all flex items-center gap-2 font-bold text-xs relative",
+                        activeFiltersCount > 0 
+                            ? "bg-cat-50 text-cat-600 hover:bg-cat-100 dark:bg-cat-900/30 dark:text-cat-400" 
+                            : "text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-600"
+                    )}
+                >
+                    <SlidersHorizontal className="w-4 h-4" />
+                    <span className="hidden sm:inline">Filter</span>
+                    {activeFiltersCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full shadow-sm">
+                            {activeFiltersCount}
+                        </span>
+                    )}
+                </button>
             </div>
-          )}
-
-          {/* Platform Filter */}
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-             {PLATFORMS.map((platform) => (
-              <button
-                key={platform}
-                onClick={() => setSelectedPlatform(platform)}
-                className={cn(
-                  "px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border",
-                  selectedPlatform === platform
-                    ? "bg-cat-500 text-white border-cat-500 dark:bg-cat-600"
-                    : "bg-white dark:bg-dark-surface text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-400"
-                )}
-              >
-                {platform}
-              </button>
-            ))}
           </div>
 
-          {/* Collapsible Categories Grid */}
+          {/* 2. PLATFORM FILTER (Horizontal Scroll) */}
+          <div>
+            <div className="flex items-center gap-2 mb-2 px-1">
+                <Layers className="w-3 h-3 text-gray-400" />
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{t.platLabel}</span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+                {PLATFORMS.map((platform) => {
+                    const style = getPlatformStyle(platform);
+                    const Icon = style.icon;
+                    const isSelected = selectedPlatform === platform;
+                    
+                    return (
+                        <button
+                            key={platform}
+                            onClick={() => setSelectedPlatform(platform)}
+                            className={cn(
+                                "flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-bold transition-all border relative overflow-hidden active:scale-95",
+                                isSelected
+                                    ? cn(style.color, "shadow-md")
+                                    : "bg-white dark:bg-dark-surface text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                            )}
+                        >
+                            {isSelected && (
+                                <div className="absolute top-0 left-0 w-full h-[40%] bg-gradient-to-b from-white/30 to-transparent" />
+                            )}
+                            <Icon className={cn("w-3.5 h-3.5 relative z-10", isSelected ? "text-white" : "text-gray-400")} />
+                            <span className="relative z-10 whitespace-nowrap">{platform}</span>
+                        </button>
+                    );
+                })}
+            </div>
+          </div>
+
+          {/* 3. COLLAPSIBLE CATEGORIES */}
           {!searchQuery && (
             <div className="animate-in fade-in slide-in-from-top-4 duration-500 bg-white dark:bg-dark-surface rounded-3xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm">
               <div 
@@ -550,7 +578,6 @@ function App() {
                         {t.categoryTitle}
                     </h3>
                     
-                    {/* Preview Icons when collapsed */}
                     {!isCategoriesOpen && (
                         <div className="flex items-center -space-x-2 opacity-60 group-hover:opacity-100 transition-opacity">
                             {CATEGORIES.slice(1, 5).map((cat) => {
@@ -617,38 +644,9 @@ function App() {
               </AnimatePresence>
             </div>
           )}
-
-          {/* Action Buttons (Wishlist & Sort) - Redesigned */}
-          <div className="flex gap-3">
-             <button 
-                onClick={() => setShowWishlistOnly(!showWishlistOnly)}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm transition-all shadow-sm active:scale-95 border-2",
-                  showWishlistOnly 
-                    ? "bg-pink-500 text-white border-pink-500 shadow-pink-500/30" 
-                    : "bg-white dark:bg-dark-surface text-gray-600 dark:text-gray-300 border-gray-100 dark:border-gray-700 hover:border-pink-200"
-                )}
-            >
-                <Heart className={cn("w-4 h-4", showWishlistOnly ? "fill-current animate-bounce" : "text-pink-400")} />
-                {lang === 'jv' ? 'Disimpen' : 'Disimpen'}
-            </button>
-
-            <button 
-                onClick={() => setSortBy(prev => prev === 'newest' ? 'popular' : 'newest')}
-                className={cn(
-                    "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm transition-all shadow-sm active:scale-95 border-2",
-                    sortBy === 'popular'
-                     ? "bg-purple-500 text-white border-purple-500 shadow-purple-500/30"
-                     : "bg-white dark:bg-dark-surface text-gray-600 dark:text-gray-300 border-gray-100 dark:border-gray-700 hover:border-purple-200"
-                )}
-            >
-                <ArrowUpDown className={cn("w-4 h-4", sortBy === 'popular' ? "text-white" : "text-purple-400")} />
-                {sortBy === 'newest' ? t.sortNewest : t.sortPopular}
-            </button>
-          </div>
         </div>
 
-        {/* GACHA BANNER - TICKET STYLE REDESIGN */}
+        {/* 4. GACHA BANNER */}
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -658,18 +656,15 @@ function App() {
                 onClick={handleGacha}
                 className="w-full relative bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl shadow-lg shadow-purple-500/20 flex overflow-hidden group hover:scale-[1.02] transition-transform duration-300"
             >
-                {/* Ticket Notches */}
                 <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-cat-50 dark:bg-dark-bg rounded-full z-10" />
                 <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-cat-50 dark:bg-dark-bg rounded-full z-10" />
 
-                {/* Left Side (Icon) */}
                 <div className="w-20 bg-black/10 flex items-center justify-center border-r-2 border-dashed border-white/30 relative">
                      <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:rotate-180 transition-transform duration-500">
                         <Dices className="w-5 h-5 text-white" />
                      </div>
                 </div>
 
-                {/* Right Side (Content) */}
                 <div className="flex-1 p-4 flex items-center justify-between">
                     <div className="text-left">
                         <div className="flex items-center gap-2 mb-1">
@@ -686,6 +681,46 @@ function App() {
                 </div>
             </button>
         </motion.div>
+
+        {/* 5. CONTROL BAR (Wishlist & Sort) - Right above List */}
+        <div className="flex gap-3 mb-4">
+            {/* Wishlist Toggle */}
+            <button 
+                onClick={() => setShowWishlistOnly(!showWishlistOnly)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm transition-all shadow-sm active:scale-95 border-2",
+                  showWishlistOnly 
+                    ? "bg-pink-500 text-white border-pink-500 shadow-pink-500/30" 
+                    : "bg-white dark:bg-dark-surface text-gray-600 dark:text-gray-300 border-gray-100 dark:border-gray-700 hover:border-pink-200"
+                )}
+            >
+                <Heart className={cn("w-4 h-4", showWishlistOnly ? "fill-current animate-bounce" : "text-pink-400")} />
+                {lang === 'jv' ? 'Disimpen' : 'Disimpen'}
+            </button>
+
+            {/* Sort Toggle */}
+            <button 
+                onClick={() => setSortBy(sortBy === 'newest' ? 'popular' : 'newest')}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm transition-all shadow-sm active:scale-95 border-2",
+                  sortBy === 'popular'
+                    ? "bg-orange-500 text-white border-orange-500 shadow-orange-500/30" 
+                    : "bg-white dark:bg-dark-surface text-gray-600 dark:text-gray-300 border-gray-100 dark:border-gray-700 hover:border-cat-200"
+                )}
+            >
+                {sortBy === 'popular' ? (
+                    <>
+                        <Flame className="w-4 h-4 fill-current animate-pulse" />
+                        {t.sortPopular}
+                    </>
+                ) : (
+                    <>
+                        <Clock className="w-4 h-4 text-cat-500" />
+                        {t.sortNewest}
+                    </>
+                )}
+            </button>
+        </div>
 
         {/* Link Cards List */}
         <div className="space-y-4">
@@ -731,6 +766,82 @@ function App() {
       >
         <ArrowUp className="w-6 h-6" />
       </button>
+
+      {/* FILTER MODAL - NEW */}
+      <Modal
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        title="Filter & Sort"
+      >
+        <div className="space-y-6">
+            {/* Sort Section */}
+            <div>
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <ArrowUpDown className="w-3 h-3" /> Urutkan
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
+                    <button
+                        onClick={() => setSortBy('newest')}
+                        className={cn(
+                            "px-4 py-3 rounded-xl text-sm font-bold border-2 transition-all",
+                            sortBy === 'newest' 
+                                ? "border-cat-500 bg-cat-50 text-cat-600" 
+                                : "border-gray-100 text-gray-500 hover:border-cat-200"
+                        )}
+                    >
+                        {t.sortNewest}
+                    </button>
+                    <button
+                        onClick={() => setSortBy('popular')}
+                        className={cn(
+                            "px-4 py-3 rounded-xl text-sm font-bold border-2 transition-all",
+                            sortBy === 'popular' 
+                                ? "border-purple-500 bg-purple-50 text-purple-600" 
+                                : "border-gray-100 text-gray-500 hover:border-purple-200"
+                        )}
+                    >
+                        {t.sortPopular}
+                    </button>
+                </div>
+            </div>
+
+            {/* Mood Section - Grid Layout */}
+            <div>
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <Smile className="w-3 h-3" /> {t.moodTitle}
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                    {MOODS.map((m) => {
+                        const Icon = m.icon;
+                        const isActive = mood === m.id;
+                        return (
+                            <button
+                                key={m.id}
+                                onClick={() => setMood(m.id as any)}
+                                className={cn(
+                                    "flex items-center gap-2 px-3 py-3 rounded-xl text-xs font-bold transition-all border",
+                                    isActive
+                                        ? "bg-gray-800 text-white border-gray-800 shadow-md"
+                                        : cn("bg-white dark:bg-dark-surface hover:border-gray-300", m.color.replace('bg-', 'hover:bg-').replace('text-', 'hover:text-'))
+                                )}
+                            >
+                                <Icon className={cn("w-4 h-4", isActive ? "text-white" : "text-current opacity-70")} />
+                                {m.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Reset Button */}
+            <button
+                onClick={resetFilters}
+                className="w-full py-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+                Reset Filter
+            </button>
+        </div>
+      </Modal>
 
       {/* Login Modal */}
       <Modal
