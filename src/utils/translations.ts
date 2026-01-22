@@ -2,6 +2,176 @@
 
 export type Language = 'id' | 'jv' | 'su' | 'en';
 
+// --- GREETING DICTIONARIES (Must be exported for Greeting.tsx) ---
+
+export const GREETINGS_ID = {
+  morning: [
+    "Pagi Babu! Mangkuk makan kok masih kosong?",
+    "Bangun woy! Matahari udah tinggi, setinggi ekspektasi Majikan.",
+    "Kerja yang rajin ya Babu, biar bisa beliin Royal Canin.",
+    "Jangan lupa sarapan, biar kuat menghadapi kenyataan (dan tagihan).",
+    "Pagi-pagi jangan ngeluh, mending checkoutin barang buat Majikan.",
+    "Semesta mendukungmu untuk belanja hari ini miaw.",
+    "Cek saldo dulu, kalau masih ada nol-nya, gass belanja!"
+  ],
+  afternoon: [
+    "Siang Babu! Jangan lupa istirahat (sambil scroll Shopee).",
+    "Panas banget, butuh yang seger-seger (alias checkout keranjang).",
+    "Udah makan siang? Kalau belum, makan dulu biar kuat bayar paylater.",
+    "Jam-jam rawan ngantuk. Mending cuci muka terus belanja.",
+    "Tetap semangat walau dompet mulai menipis miaw."
+  ],
+  evening: [
+    "Sore santuy. Enaknya ngopi sambil liat diskonan.",
+    "Udah pulang kerja? Jangan lupa setoran upeti ke Majikan.",
+    "Langitnya bagus ya, sebagus barang yang mau kamu beli.",
+    "Waktunya santai sejenak sebelum jadi babu lagi besok.",
+    "Sore-sore gini enaknya ngemil Whiskas (buat aku, kamu beli sendiri)."
+  ],
+  night: [
+    "Malem Babu. Belum tidur? Lagi overthinking ya?",
+    "Begadang jangan begadang, kecuali nunggu flash sale.",
+    "Tidur gih, biar besok bisa kerja keras bagai kuda (buat kucing).",
+    "Mimpi indah ya, semoga mimpinya dapet diskon 99%.",
+    "Jangan lupa matiin lampu, hemat listrik buat beli pasir kucing."
+  ],
+  random: [
+    "Hidup itu singkat, checkout itu abadi.",
+    "Uang bisa dicari, barang lucu kalau sold out sakit hati.",
+    "Menabung pangkal kaya, belanja pangkal bahagia.",
+    "Majikan senang, hidup tenang.",
+    "Jujurly, kamu butuh barang ini.",
+    "Definisi bahagia: Paket datang pas lagi sedih.",
+    "Kerja keraslah sampai kucingmu makan Royal Canin tiap hari.",
+    "Beli aja dulu, nyeselnya belakangan (canda deng)."
+  ]
+};
+
+export const GREETINGS_JV = {
+  morning: [
+    "Sugeng Enjang Abdi! Sampun paring dhahar dereng?",
+    "Tangi luuur! Srengenge sampun dhuwur.",
+    "Nyambut damel sing sregep nggih, kagem tumbas Whiskas.",
+    "Ampun kesupen sarapan, supados kiat ngadepi tagihan.",
+    "Enjang-enjang ampun sambat, mending blonjo mawon."
+  ],
+  afternoon: [
+    "Sugeng Siyang! Ampun kesupen ngaso.",
+    "Panas ngeten niki penak e ngadem kaliyan scroll toko oren.",
+    "Sampun dhahar siang? Menawi dereng, monggo dhahar rumiyin.",
+    "Wancinipun ngantuk. Mending raup lajeng blonjo.",
+    "Tetep semangat senajan dompet saya tipis."
+  ],
+  evening: [
+    "Sugeng Sonten. Penak e ngunjuk kopi kaliyan ningali diskon.",
+    "Sampun kondur nyambut damel? Ampun kesupen setoran.",
+    "Langite sae nggih, kados barang sing badhe ditumbas.",
+    "Wancinipun santai saderengipun dados abdi malih benjing.",
+    "Sonten ngeten penak e nyamikan."
+  ],
+  night: [
+    "Sugeng Dalu. Dereng sare? Saweg galau nopo?",
+    "Ampun begadang, kajawi nenggo flash sale.",
+    "Monggo sare, supados benjing saged nyambut damel malih.",
+    "Mimpi ingkang sae nggih.",
+    "Ampun kesupen mejahi lampu."
+  ],
+  random: [
+    "Gesang menika sekedap, checkout menika abadi.",
+    "Arto saged dipadosi, barang sae menawi telas damel sakit ati.",
+    "Nabung pangkal sugih, blonjo pangkal bungah.",
+    "Ndoro seneng, gesang ayem.",
+    "Saestu, Panjenengan betah barang niki.",
+    "Definisi bungah: Paket dumugi pas saweg susah.",
+    "Nyambut damel sing mempeng kagem Ndoro Kucing.",
+    "Tumbas mawon rumiyin, getunipun mangke."
+  ]
+};
+
+export const GREETINGS_SU = {
+  morning: [
+    "Wilujeng Enjing Babu! Tos masihan tuang teu acan?",
+    "Hudang euy! Panonpoe tos luhur.",
+    "Damel nu getol nya, kanggo meser Royal Canin.",
+    "Ulah hilap sarapan, meh kiat mayar cicilan.",
+    "Enjing-enjing ulah ngeluh, mending balanja wae."
+  ],
+  afternoon: [
+    "Wilujeng Siang! Ulah hilap istirahat.",
+    "Panas kieu mah raosna ngadem bari scroll Shopee.",
+    "Tos tuang siang? Pami teu acan, tuang heula.",
+    "Waktosna tunduh. Mending wawasuh teras balanja.",
+    "Tetep sumanget sanaos dompet ipis."
+  ],
+  evening: [
+    "Wilujeng Sonten. Raosna ngopi bari ningal diskon.",
+    "Tos uih damel? Ulah hilap setoran ka Juragan.",
+    "Langitna sae nya, sapertos barang nu bade digaleuh.",
+    "Waktosna santai sateuacan janten babu deui enjing.",
+    "Sonten kieu raosna ngemil."
+  ],
+  night: [
+    "Wilujeng Wengi. Teu acan kulem? Nuju galau nya?",
+    "Ulah begadang, iwal nunggu flash sale.",
+    "Geura kulem, meh enjing tiasa damel deui.",
+    "Mimpi nu sae nya.",
+    "Ulah hilap pareuman lampu."
+  ],
+  random: [
+    "Hirup mah sakedap, checkout mah abadi.",
+    "Artos tiasa dipilari, barang sae pami seep matak nyeri hate.",
+    "Nabung pangkal beunghar, balanja pangkal bagja.",
+    "Juragan bingah, hirup tenang.",
+    "Aslina, anjeun peryogi barang ieu.",
+    "Definisi bagja: Paket dongkap pas nuju sedih.",
+    "Damel sing leres kanggo Juragan Ucing.",
+    "Galeuh we heula, kaduhung mah engke."
+  ]
+};
+
+export const GREETINGS_EN = {
+  morning: [
+    "Good Morning Hooman! Is my bowl full yet?",
+    "Wake up! The sun is high, so are my expectations.",
+    "Work hard today, so you can buy me premium food.",
+    "Don't forget breakfast, you need strength to pay bills.",
+    "No complaining in the morning, just shopping."
+  ],
+  afternoon: [
+    "Good Afternoon! Don't forget to rest (and scroll).",
+    "It's hot outside, stay cool and checkout your cart.",
+    "Had lunch? Eat well so you can work well.",
+    "Sleepy hours. Wash your face and buy something.",
+    "Stay spirited even if the wallet is crying."
+  ],
+  evening: [
+    "Good Evening. Coffee and discounts sound good.",
+    "Back from work? Don't forget my tribute.",
+    "Beautiful sky, just like the item you want.",
+    "Time to relax before serving me again tomorrow.",
+    "Evening snacks are the best."
+  ],
+  night: [
+    "Good Night. Still awake? Overthinking?",
+    "Don't stay up late, unless it's for a flash sale.",
+    "Go to sleep, work hard like a horse tomorrow (for me).",
+    "Sweet dreams, hope you dream of 99% discounts.",
+    "Turn off the lights, save money for cat litter."
+  ],
+  random: [
+    "Life is short, checkout is eternal.",
+    "Money returns, sold out items break hearts.",
+    "Saving makes you rich, shopping makes you happy.",
+    "Happy Master, happy life.",
+    "Honestly, you need this.",
+    "Happiness is: Package arriving when you're sad.",
+    "Work hard until your cat eats premium food daily.",
+    "Buy now, regret later (just kidding)."
+  ]
+};
+
+// --- MAIN TRANSLATIONS OBJECT ---
+
 export const TRANSLATIONS = {
   id: {
     // UI Elements
@@ -36,6 +206,11 @@ export const TRANSLATIONS = {
     defaultDesc: "Barang bagus nih, rekomendasi banget buat kamu! Cek detailnya langsung ya.",
     editBtn: "Edit",
     deleteBtn: "Hapus",
+    
+    // IMAGE PREVIEW KEYS
+    imgLabel: "Link Foto Produk (Opsional)",
+    imgPlaceholder: "Paste link gambar (klik kanan foto produk -> copy image address)",
+    imgHelper: "Biar makin estetik, paste link fotonya di sini miaw!",
 
     // Language Selector
     langLabel: "Bahasa",
@@ -139,6 +314,11 @@ export const TRANSLATIONS = {
     editBtn: "Gantos",
     deleteBtn: "Bucal",
 
+    // IMAGE PREVIEW KEYS
+    imgLabel: "Link Foto Produk (Manawi Wonten)",
+    imgPlaceholder: "Tempel link gambar saking toko...",
+    imgHelper: "Supados langkung sae, tempel link fotonipun mriki miaw!",
+
     // Language Selector
     langLabel: "Boso",
     langId: "Indonesia",
@@ -240,6 +420,11 @@ export const TRANSLATIONS = {
     defaultDesc: "Barang sae yeuh, rekomendasi pisan kanggo anjeun! Cek detailna langsung.",
     editBtn: "Gentos",
     deleteBtn: "Hapus",
+
+    // IMAGE PREVIEW KEYS
+    imgLabel: "Link Foto Produk (Opsional)",
+    imgPlaceholder: "Tempel link gambar ti toko...",
+    imgHelper: "Supados langkung sae, tempel link fotona didieu miaw!",
 
     // Language Selector
     langLabel: "Basa",
@@ -343,6 +528,11 @@ export const TRANSLATIONS = {
     editBtn: "Edit",
     deleteBtn: "Delete",
 
+    // IMAGE PREVIEW KEYS
+    imgLabel: "Product Image Link (Optional)",
+    imgPlaceholder: "Paste image link here...",
+    imgHelper: "For better aesthetics, paste the image link here miaw!",
+
     // Language Selector
     langLabel: "Language",
     langId: "Indonesia",
@@ -411,230 +601,4 @@ export const TRANSLATIONS = {
       "Honestly, this is too cute to ignore!"
     ]
   }
-};
-
-// --- RICH QUOTES LIBRARY (Exported for Greeting.tsx) ---
-
-export const GREETINGS_ID = {
-  morning: [
-    "Pagi Babu! Mangkuk makan kok masih kosong?",
-    "Bangun woy! Matahari udah tinggi, setinggi ekspektasi Majikan.",
-    "Kerja yang rajin ya Babu, biar bisa beliin Royal Canin.",
-    "Jangan lupa sarapan, biar kuat menghadapi kenyataan (dan tagihan).",
-    "Pagi-pagi jangan ngeluh, mending checkoutin barang buat Majikan.",
-    "Semesta mendukungmu untuk belanja hari ini miaw.",
-    "Cek saldo dulu, kalau masih ada nol-nya, gass belanja!"
-  ],
-  afternoon: [
-    "Siang Babu! Jangan lupa istirahat (sambil scroll Shopee).",
-    "Panas banget, butuh yang dingin-dingin atau yang diskon-diskon.",
-    "Udah jam segini, paket udah dateng belum?",
-    "Kerja mulu, kapan belanjanya?",
-    "Awas ngantuk! Mending liat-liat racun biar melek.",
-    "Siang-siang gini enaknya checkout barang gemoy.",
-    "Tetap semangat cari cuan buat beli Whiskas!"
-  ],
-  evening: [
-    "Sore Babu! Udah siapin makan malam Majikan?",
-    "Langitnya bagus ya, sebagus barang di keranjangmu.",
-    "Sore santuy sambil nunggu kurir datang.",
-    "Jangan lupa mandi, biar wangi pas unboxing paket.",
-    "Nikmati senja sambil mikirin mau beli apa lagi.",
-    "Pulang kerja langsung buka Miaw Racun, mantap!",
-    "Rehat sejenak, belanja kemudian."
-  ],
-  night: [
-    "Malem Babu! Kok belum tidur? Lagi hunting diskon ya?",
-    "Begadang jangan begadang, kalau tiada diskonnya.",
-    "Mimpi indah ya, semoga besok harga turun.",
-    "Tidur yang nyenyak, besok kerja keras lagi buat Majikan.",
-    "Jangan lupa matiin lampu, tapi jangan matiin semangat belanja.",
-    "Sunyi sepi, waktu yang pas buat checkout diam-diam.",
-    "Selamat malam, semoga besok paketnya sampai!"
-  ],
-  random: [
-    "Hidup itu singkat, checkout itu abadi.",
-    "Uang bisa dicari, barang lucu limited edition.",
-    "Lebih baik nyesel beli daripada nyesel gak beli.",
-    "Majikan senang, Babu tenang.",
-    "Belanja adalah terapi terbaik (kata kucing).",
-    "Jujurly, kamu butuh ini.",
-    "Sabi banget nih buat pamer ke tetangga.",
-    "Definisi bahagia: Paket sedang dikirim.",
-    "Jangan ditahan, lepaskan hasrat belanjamu.",
-    "Dompet boncos demi kebahagiaan Majikan.",
-    "Khilaf itu manusiawi, yang penting happy.",
-    "Gercep sebelum sold out!",
-    "Racun duniawi yang hakiki.",
-    "Si paling estetik se-komplek.",
-    "Fix no debat, ini lucu parah!"
-  ]
-};
-
-export const GREETINGS_JV = {
-  morning: [
-    "Sugeng Enjang Abdi! Sampun nyiapaken dhaharan?",
-    "Tangi luuur! Srengenge sampun dhuwur.",
-    "Nyambut damel sing sregep nggih, kagem tumbas Whiskas.",
-    "Ampun kesupen sarapan, kajenge kiat ngadhepi tagihan.",
-    "Enjang-enjang ampun sambat, luwih sae belanja.",
-    "Dinten niki sae kagem belanja miaw.",
-    "Cek saldo rumiyin, menawi taksih wonten, gass!"
-  ],
-  afternoon: [
-    "Sugeng Siyang! Ampun kesupen ngaso.",
-    "Panas sanget, betah ingkang asrep-asrep.",
-    "Sampun jam semanten, paket sampun dumugi?",
-    "Nyambut damel mawon, kapan belanjanipun?",
-    "Awas ngantuk! Luwih sae ningali racun.",
-    "Siyang ngeten niki eca menawi checkout.",
-    "Tetep semangat pados arto kagem Ndoro!"
-  ],
-  evening: [
-    "Sugeng Sonten! Sampun nyiapaken dhahar dalu?",
-    "Langitipun sae, kados barang ing keranjang.",
-    "Sonten santai sinambi ngrantos kurir.",
-    "Ampun kesupen siram, kajenge wangi.",
-    "Nikmati senja sinambi mikir badhe tumbas napa.",
-    "Wangsul damel langsung mbikak Miaw Racun, jos!",
-    "Ngaso sekedap, belanja mangke malih."
-  ],
-  night: [
-    "Sugeng Dalu! Kok dereng sare? Saweg hunting diskon?",
-    "Ampun begadang menawi mboten wonten diskon.",
-    "Mimpi indah nggih, mugi benjing regi mandhap.",
-    "Sare ingkang penak, benjing nyambut damel malih.",
-    "Ampun kesupen mejahi lampu.",
-    "Sepi nyenyet, wekdal pas kagem checkout.",
-    "Sugeng dalu, mugi benjing paketipun dumugi!"
-  ],
-  random: [
-    "Gesang menika sekedap, checkout menika abadi.",
-    "Arto saged dipunpadosi, barang sae winates.",
-    "Luwih sae getun tumbas tinimbang getun mboten tumbas.",
-    "Ndoro remen, Abdi tentrem.",
-    "Belanja menika tamba ingkang manjur.",
-    "Saestu, Panjenengan betah niki.",
-    "Sae sanget kagem pamer teng tangga.",
-    "Tegesipun bagya: Paket saweg dikirim.",
-    "Ampun ditahan, uculaken kepinginan belanja.",
-    "Dompet tipis demi kabagyan Ndoro.",
-    "Khilaf menika lumrah, sing penting seneng.",
-    "Enggal-enggal saderengipun telas!",
-    "Racun donya ingkang nyata.",
-    "Ingkang paling sae sak-kampung.",
-    "Mboten sah debat, niki lucu sanget!"
-  ]
-};
-
-export const GREETINGS_SU = {
-  morning: [
-    "Wilujeng Enjing Babu! Mangkok naha kosong keneh?",
-    "Hudang euy! Panonpoe tos luhur.",
-    "Damel sing getol nya, kanggo meser Royal Canin.",
-    "Ulah hilap sarapan, meh kiat mayar cicilan.",
-    "Enjing-enjing ulah ngeluh, mending checkout.",
-    "Dinten ieu sae kanggo balanja miaw.",
-    "Cek saldo heula, pami aya keneh, gass!"
-  ],
-  afternoon: [
-    "Wilujeng Siang! Ulah hilap istirahat.",
-    "Panas pisan, peryogi nu tiis-tiis.",
-    "Tos jam sakieu, paket tos dugi teu acan?",
-    "Damel wae, iraha balanjana?",
-    "Awas tunduh! Mending ningalian racun.",
-    "Siang kieu raos pami checkout barang.",
-    "Tetep sumanget milari artos kanggo Juragan!"
-  ],
-  evening: [
-    "Wilujeng Sonten! Tos nyiapkeun tuang wengi?",
-    "Langitna sae, sapertos barang dina keranjang.",
-    "Sonten santai bari ngantosan kurir.",
-    "Ulah hilap ibak, meh seungit.",
-    "Nikmati senja bari mikiran bade meser naon.",
-    "Uih damel langsung muka Miaw Racun, mantap!",
-    "Rehat sakedap, balanja engke deui."
-  ],
-  night: [
-    "Wilujeng Wengi! Naha teu acan kulem?",
-    "Ulah begadang pami teu aya diskon.",
-    "Impenan endah nya, mugia enjing harga turun.",
-    "Kulem sing tibra, enjing damel deui.",
-    "Ulah hilap mareuman lampu.",
-    "Sepi jempling, waktos nu pas kanggo checkout.",
-    "Wilujeng wengi, mugia enjing paketna dugi!"
-  ],
-  random: [
-    "Hirup mah sakedap, checkout mah abadi.",
-    "Artos tiasa dipilari, barang lucu mah hese.",
-    "Langkung sae hanjakal meser tibatan hanjakal teu meser.",
-    "Juragan bingah, Babu tenang.",
-    "Balanja teh ubar nu paling manjur.",
-    "Aslina, anjeun peryogi ieu.",
-    "Sae pisan kanggo pamer ka tatangga.",
-    "Hartina bagja: Paket nuju dikirim.",
-    "Ulah ditahan, lepaskeun kahayang balanja.",
-    "Dompet ipis demi kabagjaan Juragan.",
-    "Khilaf mah manusa, nu penting happy.",
-    "Enggalan sateuacan seep!",
-    "Racun dunya nu hakiki.",
-    "Nu paling gaya sakampung.",
-    "Moal gagal, ieu lucu pisan!"
-  ]
-};
-
-export const GREETINGS_EN = {
-  morning: [
-    "Good Morning Hooman! Why is the bowl empty?",
-    "Wake up! The sun is high, expectations are higher.",
-    "Work hard Hooman, so you can buy premium food.",
-    "Don't forget breakfast, stay strong for the bills.",
-    "No complaining in the morning, just checkout.",
-    "The universe supports your shopping today.",
-    "Check balance first, if valid, go shop!"
-  ],
-  afternoon: [
-    "Good Afternoon! Don't forget to rest (and scroll).",
-    "It's so hot, need something cool or discounted.",
-    "Is the package here yet?",
-    "Working all the time, when do you shop?",
-    "Don't fall asleep! Look at these items instead.",
-    "Perfect afternoon to checkout cute things.",
-    "Keep spiriting to earn money for Master!"
-  ],
-  evening: [
-    "Good Evening! Dinner ready yet?",
-    "Beautiful sky, just like your cart items.",
-    "Chilling while waiting for the courier.",
-    "Don't forget to shower, smell good for unboxing.",
-    "Enjoy the sunset while thinking what to buy.",
-    "Home from work, open Miaw Racun immediately!",
-    "Rest a bit, shop later."
-  ],
-  night: [
-    "Good Night! Not sleeping yet? Hunting discounts?",
-    "Don't stay up late unless there's a sale.",
-    "Sweet dreams, hope prices drop tomorrow.",
-    "Sleep tight, work hard again tomorrow.",
-    "Don't forget to turn off the lights.",
-    "Quiet night, perfect time to checkout secretly.",
-    "Good night, hope the package arrives tomorrow!"
-  ],
-  random: [
-    "Life is short, checkout is eternal.",
-    "Money returns, limited items don't.",
-    "Better regret buying than regret missing out.",
-    "Happy Master, Peaceful Servant.",
-    "Shopping is the best therapy.",
-    "Honestly, you need this.",
-    "Perfect to show off to neighbors.",
-    "Definition of happiness: Package out for delivery.",
-    "Don't hold back, unleash your shopping desire.",
-    "Broke wallet for Master's happiness.",
-    "Mistakes happen, as long as you're happy.",
-    "Fast before it's sold out!",
-    "True worldly poison.",
-    "The most aesthetic in the neighborhood.",
-    "No debate, this is too cute!"
-  ]
 };

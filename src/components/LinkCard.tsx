@@ -29,6 +29,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
   onToggleWishlist
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [imgError, setImgError] = useState(false); // State to track broken images
   const t = TRANSLATIONS[lang];
 
   const handleCardClick = () => {
@@ -60,7 +61,7 @@ export const LinkCard: React.FC<LinkCardProps> = ({
     try {
       if (navigator.share) {
         await navigator.share(shareData);
-        toast.success(t.saved); // Reuse saved message or create new share message
+        toast.success(t.saved); 
       } else {
         await navigator.clipboard.writeText(link.url);
         toast.success(t.copied);
@@ -86,33 +87,41 @@ export const LinkCard: React.FC<LinkCardProps> = ({
       case 'Shopee': 
         return {
           className: 'bg-orange-500 text-white shadow-orange-500/40',
-          icon: ShoppingBag
+          icon: ShoppingBag,
+          bgLight: 'bg-orange-50 text-orange-500'
         };
       case 'Tokopedia': 
         return {
           className: 'bg-green-500 text-white shadow-green-500/40',
-          icon: Store
+          icon: Store,
+          bgLight: 'bg-green-50 text-green-500'
         };
       case 'Lazada': 
         return {
           className: 'bg-blue-600 text-white shadow-blue-600/40',
-          icon: Heart
+          icon: Heart,
+          bgLight: 'bg-blue-50 text-blue-500'
         };
       case 'TikTok Shop': 
         return {
           className: 'bg-black text-white shadow-gray-900/40',
-          icon: PlayCircle
+          icon: PlayCircle,
+          bgLight: 'bg-gray-100 text-gray-800'
         };
       default: 
         return {
           className: 'bg-purple-500 text-white shadow-purple-500/40',
-          icon: ExternalLink
+          icon: ExternalLink,
+          bgLight: 'bg-purple-50 text-purple-500'
         };
     }
   };
 
   const platformConfig = getPlatformConfig(link.platform);
   const PlatformIcon = platformConfig.icon;
+
+  // Determine if we should show the image or the fallback icon
+  const showImage = link.image_url && !imgError;
 
   return (
     <motion.div
@@ -129,18 +138,28 @@ export const LinkCard: React.FC<LinkCardProps> = ({
         className="p-3 md:p-4 cursor-pointer relative"
       >
         <div className="flex items-center gap-3 md:gap-4">
+          
+          {/* IMAGE PREVIEW OR PLATFORM ICON */}
           <div className={cn(
             "w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all shadow-sm relative overflow-hidden",
-            link.platform === 'Shopee' ? "bg-orange-50 text-orange-500" :
-            link.platform === 'Tokopedia' ? "bg-green-50 text-green-500" :
-            "bg-blue-50 text-blue-500"
+            !showImage && platformConfig.bgLight // Apply background color only if no image
           )}>
              {link.clicks > 10 && (
                 <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded-bl-lg font-bold z-10 flex items-center gap-0.5 animate-pulse">
                     <Flame className="w-2 h-2 fill-current" /> {t.hotBadge}
                 </div>
              )}
-            <ShoppingBag className="w-6 h-6 md:w-7 md:h-7 group-hover:scale-110 transition-transform duration-300" />
+            
+            {showImage ? (
+                <img 
+                    src={link.image_url} 
+                    alt={link.title} 
+                    onError={() => setImgError(true)} // Fallback on error
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                />
+            ) : (
+                <PlatformIcon className="w-6 h-6 md:w-7 md:h-7 group-hover:scale-110 transition-transform duration-300" />
+            )}
           </div>
           
           <div className="flex-1 min-w-0">

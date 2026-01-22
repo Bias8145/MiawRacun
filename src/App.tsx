@@ -6,7 +6,7 @@ import {
   ArrowUp, Heart, Gem, Wallet, HeartCrack, Smile,
   ListFilter, CheckCircle2, PawPrint, LayoutGrid, ChevronDown, ChevronUp,
   ShoppingBag, ChevronRight, Ticket, Store, PlayCircle, ExternalLink, Layers,
-  Flame, Clock, HeartHandshake, Plus, Cat
+  Flame, Clock, HeartHandshake, Plus, Cat, Image as ImageIcon, AlertCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -65,6 +65,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [linkForm, setLinkForm] = useState<Partial<Link>>({});
   const [isAutoFilling, setIsAutoFilling] = useState(false);
+  const [previewImgError, setPreviewImgError] = useState(false); // Track preview error
 
   // Random Gacha CTA State
   const [gachaCta, setGachaCta] = useState('');
@@ -256,6 +257,7 @@ function App() {
         title: linkForm.title,
         url: linkForm.url,
         description: linkForm.description || '',
+        image_url: linkForm.image_url || null, // Added image_url
         category,
         platform,
         clicks: linkForm.clicks || 0,
@@ -335,14 +337,12 @@ function App() {
     });
   };
 
-  // UPDATED: Only detect platform on URL blur (No more auto content from URL)
   const handleUrlBlur = () => {
     if (!linkForm.url) return;
     const platform = getPlatformFromUrl(linkForm.url);
     setLinkForm(prev => ({ ...prev, platform }));
   };
 
-  // NEW: Trigger Auto Content from Title (Manual Trigger)
   const handleAutoContent = () => {
     if (!linkForm.title || linkForm.title.trim().length < 3) {
       toast.error("Isi nama barang dulu miaw!", { icon: '😿' });
@@ -351,10 +351,7 @@ function App() {
 
     setIsAutoFilling(true);
     
-    // Simulate "Thinking" delay
     setTimeout(() => {
-      // Pass the current title to the generator.
-      // The generator will strip existing suffixes before adding new ones.
       const generated = generateContentFromTitle(linkForm.title!);
       
       if (generated) {
@@ -373,11 +370,13 @@ function App() {
 
   const openEditModal = (link: Link) => {
     setLinkForm(link);
+    setPreviewImgError(false);
     setShowLinkModal(true);
   };
 
   const openAddModal = () => {
     setLinkForm({});
+    setPreviewImgError(false);
     setShowLinkModal(true);
   };
 
@@ -386,14 +385,12 @@ function App() {
       const randomLink = links[Math.floor(Math.random() * links.length)];
       setSearchQuery(randomLink.title);
       
-      // Random Toast Message
       const toasts = t.gachaToasts;
       const randomMsg = toasts[Math.floor(Math.random() * toasts.length)];
       
       toast.success(randomMsg, { icon: '🎲' });
       window.scrollTo({ top: 400, behavior: 'smooth' });
       
-      // Refresh CTA for next time
       const ctas = t.gachaCta;
       setGachaCta(ctas[Math.floor(Math.random() * ctas.length)]);
   };
@@ -411,7 +408,6 @@ function App() {
 
   const totalClicks = links.reduce((acc, link) => acc + (link.clicks || 0), 0);
 
-  // MOODS with Lucide Icons
   const MOODS = [
     { id: 'all', label: t.moodAll, icon: LayoutGrid, color: 'bg-gray-100 text-gray-600 border-gray-200' },
     { id: 'sultan', label: t.moodSultan, icon: Gem, color: 'bg-indigo-50 text-indigo-600 border-indigo-200' },
@@ -420,7 +416,6 @@ function App() {
     { id: 'bucin', label: t.moodBucin, icon: HeartHandshake, color: 'bg-rose-50 text-rose-600 border-rose-200' },
   ];
 
-  // PLATFORM CONFIG for Filter Bar
   const getPlatformStyle = (p: string) => {
     switch(p) {
         case 'Shopee': return { icon: ShoppingBag, color: 'bg-orange-100 border-orange-200 text-orange-600' };
@@ -432,7 +427,6 @@ function App() {
     }
   };
 
-  // Count active filters for badge
   const activeFiltersCount = (mood !== 'all' ? 1 : 0) + (selectedPlatform !== 'Semua Platform' ? 1 : 0) + (sortBy !== 'newest' ? 1 : 0);
 
   return (
@@ -921,6 +915,41 @@ function App() {
               className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none h-24 resize-none"
               placeholder={t.descPlaceholder}
             />
+          </div>
+
+          {/* NEW: Image URL Input with Error Handling */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              <ImageIcon className="w-4 h-4" /> {t.imgLabel}
+            </label>
+            <input
+              type="url"
+              value={linkForm.image_url || ''}
+              onChange={(e) => {
+                  setLinkForm({...linkForm, image_url: e.target.value});
+                  setPreviewImgError(false); // Reset error on change
+              }}
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
+              placeholder={t.imgPlaceholder}
+            />
+            {linkForm.image_url && (
+              <div className="mt-2 relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
+                {previewImgError ? (
+                    <div className="text-gray-400 flex flex-col items-center">
+                        <AlertCircle className="w-6 h-6 mb-1" />
+                        <span className="text-[8px]">Error</span>
+                    </div>
+                ) : (
+                    <img 
+                        src={linkForm.image_url} 
+                        alt="Preview" 
+                        onError={() => setPreviewImgError(true)}
+                        className="w-full h-full object-cover" 
+                    />
+                )}
+              </div>
+            )}
+            <p className="text-[10px] text-gray-400 mt-1">{t.imgHelper}</p>
           </div>
           
           <div className="grid grid-cols-2 gap-4">

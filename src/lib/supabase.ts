@@ -19,7 +19,7 @@ export type Link = {
   description: string;
   category: string;
   platform: string;
-  image_url?: string;
+  image_url?: string; // Added image_url
   clicks: number;
   is_active: boolean;
 };
