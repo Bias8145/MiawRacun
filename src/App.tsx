@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import { 
   LogIn, LogOut, Moon, Sun, Settings, 
-  Wand2, Sparkles, Loader2, ArrowUpDown, Dices, 
+  Wand2, Loader2, 
   ArrowUp, Heart, Gem, Wallet, HeartCrack, Smile,
-  ListFilter, CheckCircle2, PawPrint, LayoutGrid, ChevronDown, ChevronUp,
-  ShoppingBag, ChevronRight, Ticket, Store, PlayCircle, ExternalLink, Layers,
-  Flame, Clock, HeartHandshake, Plus, Cat, Image as ImageIcon, AlertCircle
+  ListFilter, CheckCircle2, LayoutGrid,
+  ShoppingBag, Store, PlayCircle, ExternalLink, Layers,
+  Flame, Clock, HeartHandshake, Plus, Cat, Image as ImageIcon, AlertCircle, Search,
+  PawPrint, TreeDeciduous
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -34,9 +35,14 @@ function App() {
   const [filteredLinks, setFilteredLinks] = useState<Link[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   
+  // Initialize Theme from LocalStorage
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('miawTheme');
+    return savedTheme === 'dark';
+  });
+
   // Initialize Language from LocalStorage
   const [lang, setLang] = useState<Language>(() => {
     const saved = localStorage.getItem('miawLang');
@@ -47,7 +53,7 @@ function App() {
   const [showWishlistOnly, setShowWishlistOnly] = useState(false);
   
   const [mood, setMood] = useState<'all' | 'sultan' | 'bokek' | 'galau' | 'bucin'>('all');
-  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [isCategoriesExpanded, setIsCategoriesExpanded] = useState(false); // Default collapsed
 
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -65,10 +71,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [linkForm, setLinkForm] = useState<Partial<Link>>({});
   const [isAutoFilling, setIsAutoFilling] = useState(false);
-  const [previewImgError, setPreviewImgError] = useState(false); // Track preview error
-
-  // Random Gacha CTA State
-  const [gachaCta, setGachaCta] = useState('');
+  const [previewImgError, setPreviewImgError] = useState(false);
 
   const t = TRANSLATIONS[lang];
 
@@ -91,18 +94,14 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Update Gacha CTA when language changes
-  useEffect(() => {
-    const ctas = t.gachaCta;
-    setGachaCta(ctas[Math.floor(Math.random() * ctas.length)]);
-  }, [lang, t.gachaCta]);
-
   // Save Language Preference
   useEffect(() => {
     localStorage.setItem('miawLang', lang);
   }, [lang]);
 
+  // Save Theme Preference
   useEffect(() => {
+    localStorage.setItem('miawTheme', darkMode ? 'dark' : 'light');
     if (darkMode) {
       document.documentElement.classList.add('dark');
     } else {
@@ -180,7 +179,7 @@ function App() {
   // Auto-hide categories when searching
   useEffect(() => {
     if (searchQuery) {
-      setIsCategoriesOpen(false);
+      setIsCategoriesExpanded(false);
     }
   }, [searchQuery]);
 
@@ -245,7 +244,7 @@ function App() {
     setIsSaving(true);
     try {
       if (!linkForm.title || !linkForm.url) {
-          toast.error("Judul & Link wajib diisi!");
+          toast.error("Judul & Link wajib diisi meow!");
           setIsSaving(false);
           return;
       }
@@ -257,7 +256,7 @@ function App() {
         title: linkForm.title,
         url: linkForm.url,
         description: linkForm.description || '',
-        image_url: linkForm.image_url || null, // Added image_url
+        image_url: linkForm.image_url || null,
         category,
         platform,
         clicks: linkForm.clicks || 0,
@@ -285,7 +284,7 @@ function App() {
       setShowConfirmModal(null);
     } catch (error: any) {
       console.error('Error saving link:', error);
-      toast.error(`Gagal simpan: ${error.message}`);
+      toast.error(`Gagal simpan meow: ${error.message}`);
       setShowConfirmModal(null);
     } finally {
       setIsSaving(false);
@@ -312,7 +311,7 @@ function App() {
       setShowConfirmModal(null);
     } catch (error) {
       console.error('Error deleting:', error);
-      toast.error('Gagal hapus');
+      toast.error('Gagal hapus meow');
     } finally {
       setIsDeleting(false);
     }
@@ -345,7 +344,7 @@ function App() {
 
   const handleAutoContent = () => {
     if (!linkForm.title || linkForm.title.trim().length < 3) {
-      toast.error("Isi nama barang dulu miaw!", { icon: '😿' });
+      toast.error("Isi nama barang dulu meow!", { icon: '😿' });
       return;
     }
 
@@ -361,7 +360,7 @@ function App() {
           description: generated.description,
           category: getCategoryFromTitle(generated.title)
         }));
-        toast.success("Judul & Deskripsi berhasil disulap!", { icon: '✨' });
+        toast.success("Judul & Deskripsi berhasil disulap meow!", { icon: '✨' });
       }
       
       setIsAutoFilling(false);
@@ -378,21 +377,6 @@ function App() {
     setLinkForm({});
     setPreviewImgError(false);
     setShowLinkModal(true);
-  };
-
-  const handleGacha = () => {
-      if (links.length === 0) return;
-      const randomLink = links[Math.floor(Math.random() * links.length)];
-      setSearchQuery(randomLink.title);
-      
-      const toasts = t.gachaToasts;
-      const randomMsg = toasts[Math.floor(Math.random() * toasts.length)];
-      
-      toast.success(randomMsg, { icon: '🎲' });
-      window.scrollTo({ top: 400, behavior: 'smooth' });
-      
-      const ctas = t.gachaCta;
-      setGachaCta(ctas[Math.floor(Math.random() * ctas.length)]);
   };
 
   const scrollToTop = () => {
@@ -429,257 +413,294 @@ function App() {
 
   const activeFiltersCount = (mood !== 'all' ? 1 : 0) + (selectedPlatform !== 'Semua Platform' ? 1 : 0) + (sortBy !== 'newest' ? 1 : 0);
 
+  // Helper to get active category object
+  const activeCategory = CATEGORIES.find(c => c.id === selectedCategory);
+
   return (
-    <div className="min-h-screen bg-cat-50 dark:bg-dark-bg transition-colors duration-300 font-sans text-gray-800 dark:text-gray-200 pb-20">
+    <div className="min-h-screen bg-cat-50 dark:bg-dark-bg transition-colors duration-300 font-sans text-gray-800 dark:text-dark-text pb-12">
       <Toaster position="top-center" toastOptions={{
         style: {
-          borderRadius: '20px',
-          background: darkMode ? '#333' : '#fff',
+          borderRadius: '50px',
+          background: darkMode ? '#334155' : '#fff',
           color: darkMode ? '#fff' : '#333',
-          fontFamily: 'Nunito, sans-serif'
+          fontFamily: 'Fredoka, sans-serif',
+          boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+          padding: '8px 16px',
+          fontSize: '14px',
         }
       }} />
 
-      {/* Navbar */}
-      <nav className="sticky top-0 z-30 bg-white/90 dark:bg-dark-surface/90 backdrop-blur-lg border-b border-gray-100 dark:border-gray-800 px-4 py-3 md:py-4">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 md:gap-3 group cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
-            <div className="relative transform transition-transform group-hover:scale-110 duration-300">
-              <div className="bg-cat-100 dark:bg-cat-900/30 p-2 rounded-xl">
-                 <PawPrint className="w-5 h-5 md:w-6 md:h-6 text-cat-500" strokeWidth={2.5} />
-              </div>
-            </div>
-            <div className="flex flex-col leading-none">
-              <span className="font-black text-xl md:text-2xl tracking-tighter text-cat-500 drop-shadow-sm group-hover:text-cat-600 transition-colors">
-                Miaw<span className="text-gray-800 dark:text-white">Racun</span>
-              </span>
-              <span className="text-[9px] md:text-[10px] font-bold text-gray-400 tracking-widest uppercase ml-0.5">
-                {lang === 'jv' ? 'Pusat Barang Sae' : 'Pusat Barang Gemoy'}
-              </span>
+      {/* HEADER & FLOATING CONTROLS - REFACTORED FOR COMPACTNESS */}
+      <nav className="sticky top-2 z-40 px-4 mb-4">
+        <div className="max-w-xl mx-auto flex justify-between items-center gap-2">
+          {/* LOGO - COMPACT & RESPONSIVE */}
+          <div className="bg-white dark:bg-dark-surface rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-700 px-3 py-1.5 flex items-center gap-x-2 transition-all hover:shadow-md cursor-default group relative overflow-hidden shrink min-w-0">
+            {/* Paw Icon: Compact size */}
+            <PawPrint 
+                className="w-6 h-6 text-pink-400 stroke-[2.5px] fill-transparent -rotate-12 shrink-0" 
+            />
+            
+            <div className="flex flex-col justify-center relative z-10 min-w-0">
+                <div className="flex items-baseline">
+                    <h1 className="font-black text-lg tracking-tighter leading-none flex items-baseline truncate">
+                        <span className="text-cat-400">Meow</span>
+                        <span className="text-pink-400">Tree</span>
+                        {/* Tree Icon: Inline */}
+                        <TreeDeciduous className="w-4 h-4 text-emerald-500 fill-emerald-100 dark:fill-emerald-900/30 stroke-[2.5px] ml-0.5 self-center transform translate-y-0.5 shrink-0" />
+                    </h1>
+                </div>
+                <span className="text-[8px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest leading-none mt-0.5 truncate">
+                    {t.appTagline}
+                </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* CONTROLS */}
+          <div className="bg-white dark:bg-dark-surface rounded-full shadow-sm border border-gray-100 dark:border-gray-700 p-1 flex items-center gap-1 transition-all shrink-0">
             <LanguageSelector currentLang={lang} onSelect={setLang} />
 
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2 md:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-full bg-cat-50 dark:bg-dark-surface2 text-cat-500 dark:text-cat-300 hover:bg-cat-100 dark:hover:bg-gray-600 transition-colors"
             >
-              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
             
             {isAdmin ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 pl-1 border-l border-gray-100 dark:border-gray-700">
                 <button
                   onClick={openAddModal}
-                  className="flex items-center gap-1 bg-cat-500 hover:bg-cat-600 text-white px-3 py-2 md:px-4 md:py-2.5 rounded-full text-xs md:text-sm font-bold transition-all shadow-lg shadow-cat-500/30 active:scale-95"
+                  className="bg-cat-500 hover:bg-cat-600 text-white p-2 rounded-full shadow-sm active:scale-95 transition-all"
                 >
-                  <Plus className="w-4 h-4" /> <span className="hidden md:inline">{t.addBtn}</span>
+                  <Plus className="w-4 h-4" />
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="p-2 md:p-2.5 rounded-full hover:bg-red-100 text-red-500 transition-colors"
-                  title={t.logoutBtn}
+                  className="p-2 rounded-full text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 >
-                  <LogOut className="w-5 h-5" />
+                  <LogOut className="w-4 h-4" />
                 </button>
               </div>
             ) : (
               <button
                 onClick={() => setShowLoginModal(true)}
-                className="p-2 md:p-2.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 transition-colors"
-                title="Login"
+                className="p-2 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
-                <Settings className="w-5 h-5" />
+                <Settings className="w-4 h-4" />
               </button>
             )}
           </div>
         </div>
       </nav>
 
-      <main className="max-w-2xl mx-auto px-4 py-6 md:py-8 min-h-[80vh]">
+      <main className="max-w-xl mx-auto px-4">
         <Greeting lang={lang} />
 
         {isAdmin && (
             <AdminStats totalLinks={links.length} totalClicks={totalClicks} />
         )}
 
-        <div className="mb-8 space-y-6">
-          {/* SEARCH BAR */}
-          <div className="relative pt-3">
-             <div className="absolute top-0 left-6 flex gap-12 pointer-events-none z-0">
-                <div className="w-8 h-6 bg-white dark:bg-dark-surface rounded-t-full transform -rotate-12 border-t border-l border-gray-100 dark:border-gray-700 shadow-sm" />
-                <div className="w-8 h-6 bg-white dark:bg-dark-surface rounded-t-full transform rotate-12 border-t border-r border-gray-100 dark:border-gray-700 shadow-sm" />
-             </div>
-
-            <div className="relative z-10 flex items-center bg-white dark:bg-dark-surface rounded-3xl border-2 border-transparent focus-within:border-cat-300 dark:focus-within:border-cat-700 shadow-sm focus-within:shadow-lg focus-within:shadow-cat-500/10 transition-all">
-                <div className="pl-5 pr-3 text-cat-400">
-                    <PawPrint className="w-5 h-5 transform -rotate-12" />
-                </div>
-                <input
-                type="text"
-                placeholder={t.searchPlaceholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full py-3.5 md:py-4 bg-transparent outline-none text-sm md:text-base font-medium text-gray-700 dark:text-gray-200 placeholder-gray-400"
-                />
-                <div className="pr-2 pl-2 border-l border-gray-100 dark:border-gray-700 h-8 flex items-center">
-                    <button 
-                        onClick={() => setShowFilterModal(true)}
-                        className={cn(
-                            "h-9 px-3 rounded-xl transition-all flex items-center gap-2 font-bold text-xs relative active:scale-95",
-                            activeFiltersCount > 0 
-                                ? "bg-cat-500 text-white shadow-md shadow-cat-500/20" 
-                                : "bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
-                        )}
-                    >
-                        <ListFilter className="w-4 h-4" />
-                        <span className="hidden sm:inline">{t.filterBtn}</span>
-                        {activeFiltersCount > 0 && (
-                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full shadow-sm border border-white dark:border-dark-surface">
-                                {activeFiltersCount}
-                            </span>
-                        )}
-                    </button>
-                </div>
+        <div className="space-y-4 mb-6">
+          {/* SEARCH BAR & FILTER TOGGLE */}
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <Search className="w-4 h-4 text-cat-300 group-focus-within:text-cat-500 transition-colors" />
+            </div>
+            <input
+              type="text"
+              placeholder={t.searchPlaceholder}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-14 py-3 bg-white dark:bg-dark-surface rounded-full border-2 border-transparent focus:border-cat-200 dark:focus:border-cat-800 shadow-sm outline-none text-gray-700 dark:text-gray-200 font-medium transition-all placeholder-gray-300 text-sm"
+            />
+            <div className="absolute inset-y-0 right-1.5 flex items-center">
+                 <button 
+                    onClick={() => setShowFilterModal(true)}
+                    className={cn(
+                        "p-2 rounded-full transition-all active:scale-95",
+                        activeFiltersCount > 0 
+                            ? "bg-cat-500 text-white shadow-sm" 
+                            : "bg-gray-100 dark:bg-dark-surface2 text-gray-400 hover:bg-gray-200"
+                    )}
+                >
+                    <ListFilter className="w-4 h-4" />
+                </button>
             </div>
           </div>
 
-          {/* COLLAPSIBLE CATEGORIES */}
+          {/* CUTE CATEGORY SECTION - REFINED */}
           {!searchQuery && (
-            <div className="animate-in fade-in slide-in-from-top-4 duration-500 bg-white dark:bg-dark-surface rounded-3xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm">
-              <div 
-                onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                className="flex justify-between items-center cursor-pointer select-none group"
-              >
-                <div className="flex items-center gap-3">
-                    <h3 className="text-sm font-bold text-gray-600 dark:text-gray-300 flex items-center gap-2">
-                        <LayoutGrid className="w-4 h-4 text-cat-500"/> 
-                        {t.categoryTitle}
-                    </h3>
-                    
-                    {!isCategoriesOpen && (
-                        <div className="flex items-center -space-x-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                            {CATEGORIES.slice(1, 5).map((cat) => {
-                                const Icon = cat.icon;
-                                return (
-                                    <div key={cat.id} className={cn("w-7 h-7 rounded-full border-2 border-white dark:border-dark-surface flex items-center justify-center", cat.color)}>
-                                        <Icon className="w-3.5 h-3.5 text-current" />
-                                    </div>
-                                );
-                            })}
-                             <div className="w-7 h-7 rounded-full border-2 border-white dark:border-dark-surface flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-[9px] font-bold text-gray-500">
-                                +4
-                            </div>
-                        </div>
+            <div className="bg-white dark:bg-dark-surface rounded-[2rem] p-3 border border-cat-50 dark:border-gray-800 shadow-sm transition-all duration-300">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-3 px-1">
+                   <div className="flex items-center gap-2">
+                       <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{t.categoryTitle}</span>
+                       <AnimatePresence mode="wait">
+                         <motion.span
+                           key={activeCategory?.id || 'default'}
+                           initial={{ opacity: 0, scale: 0.9 }}
+                           animate={{ opacity: 1, scale: 1 }}
+                           exit={{ opacity: 0, scale: 0.9 }}
+                           className={cn(
+                             "text-xs font-black px-3 py-1 rounded-full truncate max-w-[140px] transition-colors",
+                             activeCategory 
+                               ? cn(activeCategory.activeBg, "text-white shadow-sm") // Solid vibrant badge
+                               : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                           )}
+                         >
+                           {activeCategory?.label || selectedCategory}
+                         </motion.span>
+                       </AnimatePresence>
+                   </div>
+                   
+                   <button 
+                      onClick={() => setIsCategoriesExpanded(!isCategoriesExpanded)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold transition-all active:scale-95",
+                        isCategoriesExpanded 
+                          ? "bg-pink-100 text-pink-500" 
+                          : "bg-cat-100 text-cat-500"
+                      )}
+                   >
+                      {isCategoriesExpanded ? 'Tutup' : 'Buka'}
+                      <PawPrint className={cn("w-3 h-3 transition-transform", isCategoriesExpanded ? "rotate-180" : "")} />
+                   </button>
+                </div>
+
+                {/* Content Area - Smooth Height Transition */}
+                <motion.div 
+                  layout
+                  className="relative overflow-hidden"
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    {!isCategoriesExpanded ? (
+                      /* Collapsed Preview (Horizontal Scroll) */
+                      <motion.div
+                        key="collapsed"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1 px-1"
+                      >
+                        {CATEGORIES.slice(0, 6).map((cat) => {
+                           const Icon = cat.icon;
+                           const isSelected = selectedCategory === cat.id;
+                           return (
+                             <button 
+                                key={cat.id}
+                                onClick={() => setSelectedCategory(cat.id)}
+                                className={cn(
+                                  "w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all duration-300", 
+                                  isSelected 
+                                    ? cn(cat.activeBg, "text-white shadow-md scale-110") // Solid vibrant bg, white icon
+                                    : cn(cat.bg, cat.color, "hover:opacity-80 active:scale-95")
+                                )}
+                                title={cat.label}
+                             >
+                                <Icon className="w-5 h-5" />
+                             </button>
+                           )
+                        })}
+                        <button 
+                          onClick={() => setIsCategoriesExpanded(true)}
+                          className="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center text-gray-400 text-[10px] font-bold shrink-0 hover:bg-gray-100 transition-colors"
+                        >
+                          +{CATEGORIES.length - 6}
+                        </button>
+                      </motion.div>
+                    ) : (
+                      /* Expanded Grid (3 Columns) */
+                      <motion.div
+                        key="expanded"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="grid grid-cols-3 gap-2 pt-1 pb-1"
+                      >
+                          {CATEGORIES.map((cat) => {
+                              const Icon = cat.icon;
+                              const isSelected = selectedCategory === cat.id;
+                              
+                              return (
+                                  <button
+                                      key={cat.id}
+                                      onClick={() => { setSelectedCategory(cat.id); setIsCategoriesExpanded(false); }}
+                                      className={cn(
+                                          "px-2 py-3 rounded-2xl text-[10px] font-bold transition-all flex flex-col items-center gap-2 text-center relative overflow-hidden",
+                                          isSelected 
+                                            ? cn(cat.activeBg, "text-white shadow-md") // Solid vibrant bg when selected in grid too
+                                            : "bg-gray-50 dark:bg-dark-surface2/30 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400"
+                                      )}
+                                  >
+                                      <div className={cn(
+                                        "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300",
+                                        isSelected 
+                                            ? "bg-white/20 text-white" // Semi-transparent white bg for icon
+                                            : cn("bg-white dark:bg-dark-surface", cat.color)
+                                      )}>
+                                        <Icon className="w-4 h-4" />
+                                      </div>
+                                      <span className="truncate w-full z-10 leading-tight px-1">
+                                        {cat.label}
+                                      </span>
+                                  </button>
+                              );
+                          })}
+                      </motion.div>
                     )}
-                </div>
-
-                <div className="bg-gray-100 dark:bg-gray-800 p-1.5 rounded-full text-gray-400 group-hover:bg-cat-100 group-hover:text-cat-500 transition-colors">
-                    {isCategoriesOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </div>
-              </div>
-
-              <AnimatePresence>
-                {isCategoriesOpen && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 pt-4">
-                      {CATEGORIES.map((cat) => {
-                        const Icon = cat.icon;
-                        const isSelected = selectedCategory === cat.id;
-                        
-                        return (
-                          <button
-                            key={cat.id}
-                            onClick={() => setSelectedCategory(cat.id)}
-                            className="flex flex-col items-center gap-2 group"
-                          >
-                            <div className={cn(
-                              "w-12 h-12 md:w-14 md:h-14 rounded-[18px] flex items-center justify-center transition-all duration-300 shadow-sm border-[1.5px]",
-                              isSelected 
-                                ? "bg-cat-500 text-white shadow-cat-500/40 scale-105 border-cat-500 rotate-3" 
-                                : "bg-gray-50 dark:bg-dark-surface2 border-transparent hover:border-cat-200 hover:scale-105",
-                              !isSelected && cat.color.replace('bg-', 'text-')
-                            )}>
-                              <Icon className={cn("w-5 h-5 md:w-6 md:h-6", isSelected ? "text-white" : "")} />
-                            </div>
-                            <span className={cn(
-                              "text-[9px] md:text-[10px] font-bold text-center leading-tight max-w-[60px]",
-                              isSelected ? "text-cat-600 dark:text-cat-400" : "text-gray-400"
-                            )}>
-                              {cat.label}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  </AnimatePresence>
+                </motion.div>
             </div>
+          )}
+
+          {/* SORT & WISHLIST BAR */}
+          {!searchQuery && (
+              <div className="flex gap-2">
+                  <div className="flex-1 bg-white dark:bg-dark-surface p-1 rounded-full shadow-sm border border-cat-50 dark:border-gray-800 flex">
+                      <button
+                          onClick={() => setSortBy('newest')}
+                          className={cn(
+                              "flex-1 py-2 rounded-full text-[10px] font-bold transition-all flex items-center justify-center gap-1",
+                              sortBy === 'newest' ? "bg-cat-100 text-cat-600 dark:bg-cat-900/30 dark:text-cat-400" : "text-gray-400"
+                          )}
+                      >
+                          <Clock className="w-3 h-3" /> {t.sortNewest}
+                      </button>
+                      <button
+                          onClick={() => setSortBy('popular')}
+                          className={cn(
+                              "flex-1 py-2 rounded-full text-[10px] font-bold transition-all flex items-center justify-center gap-1",
+                              sortBy === 'popular' ? "bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400" : "text-gray-400"
+                          )}
+                      >
+                          <Flame className="w-3 h-3" /> {t.sortPopular}
+                      </button>
+                  </div>
+                  
+                  <button 
+                      onClick={() => setShowWishlistOnly(!showWishlistOnly)}
+                      className={cn(
+                          "px-4 rounded-full text-[10px] font-bold transition-all border-2 flex items-center gap-1.5 shrink-0",
+                          showWishlistOnly 
+                              ? "bg-pink-500 border-pink-500 text-white shadow-sm" 
+                              : "bg-white dark:bg-dark-surface border-transparent text-gray-400 hover:border-pink-200"
+                      )}
+                  >
+                      <Heart className={cn("w-3.5 h-3.5", showWishlistOnly ? "fill-white" : "")} />
+                      {t.wishlistLabel}
+                  </button>
+              </div>
           )}
         </div>
 
-        {/* GACHA & WISHLIST ROW */}
-        <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 flex gap-3 h-[72px]"
-        >
-            <button 
-                onClick={() => setShowWishlistOnly(!showWishlistOnly)}
-                className={cn(
-                  "flex flex-col items-center justify-center gap-1 px-3 md:px-4 rounded-2xl font-bold text-[10px] transition-all active:scale-95 border-b-4 relative overflow-hidden group min-w-[70px] md:min-w-[76px]",
-                  showWishlistOnly 
-                    ? "bg-pink-50 text-pink-600 border-pink-300" 
-                    : "bg-white dark:bg-dark-surface text-gray-500 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-                )}
-            >
-                <Heart className={cn("w-6 h-6", showWishlistOnly ? "fill-pink-500 text-pink-500 animate-bounce" : "text-gray-300 group-hover:text-pink-400")} />
-                <span>{t.wishlistLabel}</span>
-            </button>
-
-            <button
-                onClick={handleGacha}
-                className="flex-1 relative group active:scale-[0.98] transition-transform min-w-0"
-            >
-                <div className="w-full h-full bg-indigo-500 rounded-2xl flex items-center p-1 relative overflow-hidden shadow-lg shadow-indigo-200 dark:shadow-none">
-                    <div className="w-full h-full border-2 border-dashed border-white/30 rounded-xl flex items-center relative">
-                        <div className="w-14 md:w-16 h-full flex items-center justify-center border-r-2 border-dashed border-white/30 relative shrink-0">
-                            <Dices className="text-white w-6 h-6 md:w-7 md:h-7 group-hover:rotate-180 transition-transform duration-500" />
-                            <div className="absolute -top-3 -right-2.5 w-5 h-5 bg-cat-50 dark:bg-dark-bg rounded-full z-10" />
-                            <div className="absolute -bottom-3 -right-2.5 w-5 h-5 bg-cat-50 dark:bg-dark-bg rounded-full z-10" />
-                        </div>
-                        <div className="flex-1 px-3 md:px-4 flex flex-col justify-center text-left overflow-hidden">
-                            <div className="flex items-center gap-1 mb-0.5">
-                                <Ticket className="w-3 h-3 text-indigo-200 shrink-0" />
-                                <span className="text-[8px] md:text-[9px] font-black tracking-widest text-indigo-200 uppercase truncate">{t.gachaTicketLabel}</span>
-                            </div>
-                            <p className="text-xs md:text-sm font-bold text-white italic truncate pr-2">
-                                "{gachaCta}"
-                            </p>
-                        </div>
-                        <div className="pr-3 md:pr-4 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-all hidden sm:block">
-                             <ChevronRight className="w-5 h-5 text-white" />
-                        </div>
-                    </div>
-                </div>
-            </button>
-        </motion.div>
-
         {/* Link Cards List */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {loading ? (
-            <div className="text-center py-20">
-              <div className="animate-spin w-10 h-10 border-4 border-cat-200 border-t-cat-500 rounded-full mx-auto mb-4" />
-              <p className="text-gray-400 animate-pulse font-medium">{t.loadingBtn}</p>
+            <div className="text-center py-12">
+              <div className="animate-spin w-8 h-8 border-4 border-cat-200 border-t-cat-500 rounded-full mx-auto mb-3" />
+              <p className="text-gray-400 animate-pulse text-xs font-bold">{t.loadingBtn}</p>
             </div>
           ) : filteredLinks.length > 0 ? (
             filteredLinks.map((link) => (
@@ -696,12 +717,12 @@ function App() {
               />
             ))
           ) : (
-            <div className="text-center py-16 bg-white/50 dark:bg-dark-surface/50 rounded-3xl border-2 border-dashed border-gray-300 dark:border-gray-700">
-              <div className="flex justify-center mb-3">
-                 <Cat className="w-12 h-12 text-gray-300" />
+            <div className="text-center py-12 bg-white/50 dark:bg-dark-surface/50 rounded-[2rem] border-2 border-dashed border-gray-300 dark:border-gray-700">
+              <div className="flex justify-center mb-2">
+                 <Cat className="w-10 h-10 text-gray-300" />
               </div>
-              <p className="text-gray-600 dark:text-gray-300 font-medium">{t.emptyState}</p>
-              <p className="text-sm text-gray-400 mt-1">{showWishlistOnly ? t.wishlistEmpty : t.emptyStateSub}</p>
+              <p className="text-gray-600 dark:text-gray-300 font-bold text-sm">{t.emptyState}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{showWishlistOnly ? t.wishlistEmpty : t.emptyStateSub}</p>
             </div>
           )}
         </div>
@@ -712,54 +733,22 @@ function App() {
       <button
         onClick={scrollToTop}
         className={cn(
-          "fixed bottom-6 right-6 p-3 bg-cat-500 text-white rounded-full shadow-lg shadow-cat-500/30 transition-all duration-300 hover:bg-cat-600 hover:-translate-y-1 z-40",
+          "fixed bottom-4 right-4 p-2.5 bg-cat-500 text-white rounded-full shadow-lg shadow-cat-500/30 transition-all duration-300 hover:bg-cat-600 hover:-translate-y-1 z-30",
           showScrollTop ? "opacity-100 scale-100" : "opacity-0 scale-0 pointer-events-none"
         )}
       >
-        <ArrowUp className="w-6 h-6" />
+        <ArrowUp className="w-5 h-5" />
       </button>
 
       {/* FILTER MODAL */}
       <Modal
         isOpen={showFilterModal}
         onClose={() => setShowFilterModal(false)}
-        title="Control Panel Babu"
+        title={t.filterBtn}
       >
-        <div className="space-y-6">
+        <div className="space-y-5">
             <div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <ArrowUpDown className="w-3 h-3" /> Urutkan
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                    <button
-                        onClick={() => setSortBy('newest')}
-                        className={cn(
-                            "px-4 py-3 rounded-xl text-sm font-bold border-2 transition-all flex items-center justify-center gap-2",
-                            sortBy === 'newest' 
-                                ? "border-cat-500 bg-cat-50 text-cat-600" 
-                                : "border-gray-100 text-gray-500 hover:border-cat-200"
-                        )}
-                    >
-                        <Clock className="w-4 h-4" />
-                        {t.sortNewest}
-                    </button>
-                    <button
-                        onClick={() => setSortBy('popular')}
-                        className={cn(
-                            "px-4 py-3 rounded-xl text-sm font-bold border-2 transition-all flex items-center justify-center gap-2",
-                            sortBy === 'popular' 
-                                ? "border-purple-500 bg-purple-50 text-purple-600" 
-                                : "border-gray-100 text-gray-500 hover:border-purple-200"
-                        )}
-                    >
-                        <Flame className="w-4 h-4" />
-                        {t.sortPopular}
-                    </button>
-                </div>
-            </div>
-
-            <div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                     <Layers className="w-3 h-3" /> {t.platLabel}
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
@@ -773,14 +762,14 @@ function App() {
                                 key={platform}
                                 onClick={() => setSelectedPlatform(platform)}
                                 className={cn(
-                                    "flex items-center gap-2 px-3 py-3 rounded-xl text-xs font-bold transition-all border-2",
+                                    "flex items-center gap-2 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all border-2",
                                     isSelected
                                         ? cn(style.color, "border-opacity-100 bg-opacity-100") 
                                         : "bg-white dark:bg-dark-surface text-gray-500 border-gray-100 dark:border-gray-700 hover:border-gray-200"
                                 )}
                             >
                                 <Icon className={cn("w-3.5 h-3.5", isSelected ? "text-current" : "text-gray-400")} />
-                                <span>{platform}</span>
+                                <span className="truncate">{platform}</span>
                                 {isSelected && <CheckCircle2 className="w-3 h-3 ml-auto text-current" />}
                             </button>
                         );
@@ -789,7 +778,7 @@ function App() {
             </div>
 
             <div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                     <Smile className="w-3 h-3" /> {t.moodTitle}
                 </h3>
                 <div className="grid grid-cols-2 gap-2">
@@ -801,13 +790,13 @@ function App() {
                                 key={m.id}
                                 onClick={() => setMood(m.id as any)}
                                 className={cn(
-                                    "flex items-center gap-2 px-3 py-3 rounded-xl text-xs font-bold transition-all border-2",
+                                    "flex items-center gap-2 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all border-2",
                                     isActive
                                         ? cn(m.color, "border-opacity-100 bg-opacity-100")
                                         : "bg-white dark:bg-dark-surface text-gray-500 border-gray-100 dark:border-gray-700 hover:border-gray-200"
                                 )}
                             >
-                                <Icon className={cn("w-4 h-4", isActive ? "text-current" : "text-gray-400")} />
+                                <Icon className={cn("w-3.5 h-3.5", isActive ? "text-current" : "text-gray-400")} />
                                 {m.label}
                             </button>
                         );
@@ -817,7 +806,7 @@ function App() {
 
             <button
                 onClick={resetFilters}
-                className="w-full py-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                className="w-full py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 font-bold text-xs hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             >
                 {t.resetBtn}
             </button>
@@ -830,40 +819,40 @@ function App() {
         onClose={() => setShowLoginModal(false)}
         title={t.loginTitle}
       >
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl text-sm text-blue-600 dark:text-blue-300 mb-4 flex gap-2">
-            <LogIn className="w-5 h-5 shrink-0" />
+        <form onSubmit={handleLogin} className="space-y-3">
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-2xl text-xs text-blue-600 dark:text-blue-300 mb-3 flex gap-2">
+            <LogIn className="w-4 h-4 shrink-0" />
             {t.loginDesc}
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t.passwordLabel}</label>
+            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">{t.passwordLabel}</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-5 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-cat-500 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-cat-500 outline-none transition-all text-sm"
               placeholder={t.passwordPlaceholder}
               autoFocus
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-cat-500 hover:bg-cat-600 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-cat-500/30 flex items-center justify-center gap-2 active:scale-95"
+            className="w-full bg-cat-500 hover:bg-cat-600 text-white font-bold py-3 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95 text-sm"
           >
-            <LogIn className="w-5 h-5" /> {t.loginBtn}
+            <LogIn className="w-4 h-4" /> {t.loginBtn}
           </button>
         </form>
       </Modal>
 
-      {/* Add/Edit Link Modal (UPDATED: Auto Content Logic) */}
+      {/* Add/Edit Link Modal */}
       <Modal
         isOpen={showLinkModal}
         onClose={() => setShowLinkModal(false)}
         title={linkForm.id ? t.editTitle : t.addTitle}
       >
-        <form onSubmit={handleSaveLink} className="space-y-4">
+        <form onSubmit={handleSaveLink} className="space-y-3">
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
               {t.urlLabel}
             </label>
             <input
@@ -871,73 +860,70 @@ function App() {
               value={linkForm.url || ''}
               onChange={(e) => setLinkForm({...linkForm, url: e.target.value})}
               onBlur={handleUrlBlur}
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
+              className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none text-sm"
               placeholder={t.urlPlaceholder}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">
               {t.titleLabel}
-              {isAutoFilling && <span className="ml-2 text-cat-500 text-xs animate-pulse flex items-center gap-1 inline-flex"><Sparkles className="w-3 h-3"/> Lagi mikir...</span>}
+              {isAutoFilling && <span className="ml-2 text-cat-500 text-[10px] animate-pulse flex items-center gap-1 inline-flex"><Wand2 className="w-3 h-3"/> Lagi mikir meow...</span>}
             </label>
             <div className="relative">
               <input
                 type="text"
                 value={linkForm.title || ''}
                 onChange={(e) => setLinkForm({...linkForm, title: e.target.value})}
-                className="w-full pl-4 pr-10 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
+                className="w-full pl-4 pr-10 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none text-sm"
                 placeholder={t.titlePlaceholder}
                 required
               />
-              {/* Wand Button Moved Here */}
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">
                 <button 
                   type="button"
                   onClick={handleAutoContent}
                   disabled={isAutoFilling}
-                  className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors disabled:opacity-50"
-                  title="Auto Generate Title & Description"
+                  className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors disabled:opacity-50"
+                  title="Auto Generate"
                 >
-                  <Wand2 className={cn("w-5 h-5", isAutoFilling ? "text-cat-500 animate-spin" : "")} />
+                  <Wand2 className={cn("w-4 h-4", isAutoFilling ? "text-cat-500 animate-spin" : "")} />
                 </button>
               </div>
             </div>
-            <p className="text-[10px] text-gray-400 mt-1">{t.urlHelp}</p>
           </div>
           
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t.descLabel}</label>
+            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">{t.descLabel}</label>
             <textarea
               value={linkForm.description || ''}
               onChange={(e) => setLinkForm({...linkForm, description: e.target.value})}
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none h-24 resize-none"
+              className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none h-20 resize-none text-sm"
               placeholder={t.descPlaceholder}
             />
           </div>
 
-          {/* NEW: Image URL Input with Error Handling */}
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-              <ImageIcon className="w-4 h-4" /> {t.imgLabel}
+            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 flex items-center gap-2">
+              <ImageIcon className="w-3 h-3" /> {t.imgLabel}
             </label>
             <input
               type="url"
               value={linkForm.image_url || ''}
               onChange={(e) => {
                   setLinkForm({...linkForm, image_url: e.target.value});
-                  setPreviewImgError(false); // Reset error on change
+                  setPreviewImgError(false);
               }}
-              className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
+              className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none text-sm"
               placeholder={t.imgPlaceholder}
             />
             {linkForm.image_url && (
-              <div className="mt-2 relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
+              <div className="mt-2 relative w-full h-24 rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
                 {previewImgError ? (
                     <div className="text-gray-400 flex flex-col items-center">
-                        <AlertCircle className="w-6 h-6 mb-1" />
-                        <span className="text-[8px]">Error</span>
+                        <AlertCircle className="w-5 h-5 mb-1" />
+                        <span className="text-[8px]">Error Meow</span>
                     </div>
                 ) : (
                     <img 
@@ -949,16 +935,15 @@ function App() {
                 )}
               </div>
             )}
-            <p className="text-[10px] text-gray-400 mt-1">{t.imgHelper}</p>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t.catLabel}</label>
+              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">{t.catLabel}</label>
               <select
                 value={linkForm.category || ''}
                 onChange={(e) => setLinkForm({...linkForm, category: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
+                className="w-full px-3 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none text-xs"
               >
                 <option value="">{t.autoOption}</option>
                 {CATEGORIES.filter(c => c.id !== 'Semua').map(c => (
@@ -967,11 +952,11 @@ function App() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t.platLabel}</label>
+              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">{t.platLabel}</label>
               <select
                 value={linkForm.platform || ''}
                 onChange={(e) => setLinkForm({...linkForm, platform: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none"
+                className="w-full px-3 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-cat-500 outline-none text-xs"
               >
                  <option value="">{t.autoOption}</option>
                  {PLATFORMS.filter(p => p !== 'Semua Platform').map(p => (
@@ -983,14 +968,14 @@ function App() {
 
           <button
             type="submit"
-            className="w-full bg-cat-500 hover:bg-cat-600 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-cat-500/30 mt-4 active:scale-95"
+            className="w-full bg-cat-500 hover:bg-cat-600 text-white font-bold py-3 rounded-2xl transition-all shadow-sm mt-2 active:scale-95 text-sm"
           >
             {linkForm.id ? t.updateBtn : t.saveBtn}
           </button>
         </form>
       </Modal>
 
-      {/* Confirmation Modal */}
+      {/* Confirmation Modal - FIXED: No Bouncing, No Shape */}
       <Modal
         isOpen={!!showConfirmModal}
         onClose={() => !isSaving && !isDeleting && setShowConfirmModal(null)}
@@ -998,22 +983,24 @@ function App() {
         zIndex={60}
         isConfirmation={true}
       >
-        <div className="text-center">
-          <div className="bg-cat-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 text-cat-500 animate-bounce">
-            <Cat className="w-10 h-10" />
+        <div className="text-center pt-4">
+          {/* Simple, Static Icon */}
+          <div className="flex justify-center mb-4">
+            <Cat className="w-16 h-16 text-cat-500 dark:text-cat-400" />
           </div>
-          <p className="text-gray-600 dark:text-gray-300 mb-8 text-lg font-medium leading-relaxed">
+          
+          <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm font-medium leading-relaxed px-4">
             {showConfirmModal?.type === 'login' && t.confirmLogin}
             {showConfirmModal?.type === 'logout' && t.confirmLogout}
             {showConfirmModal?.type === 'delete' && t.confirmDelete}
             {showConfirmModal?.type === 'save_link' && t.confirmSave}
           </p>
           
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <button
               onClick={() => setShowConfirmModal(null)}
               disabled={isSaving || isDeleting}
-              className="flex-1 px-4 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-3 rounded-2xl border-2 border-gray-100 dark:border-gray-700 font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 text-sm"
             >
               {t.cancelBtn}
             </button>
@@ -1025,12 +1012,12 @@ function App() {
                 if (showConfirmModal?.type === 'save_link') confirmSaveLink();
               }}
               disabled={isSaving || isDeleting}
-              className="flex-1 px-4 py-3.5 rounded-xl bg-cat-500 text-white font-bold hover:bg-cat-600 transition-all shadow-lg shadow-cat-500/30 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-3 rounded-2xl bg-cat-500 text-white font-bold hover:bg-cat-600 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-sm"
             >
               {(isSaving || isDeleting) ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>{t.loadingBtn}</span>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>...</span>
                 </>
               ) : (
                 t.confirmBtn

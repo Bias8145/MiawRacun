@@ -24,7 +24,7 @@ html {
 
 /* Custom Scrollbar for Modal content */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 4px; /* Thinner */
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
@@ -37,18 +37,26 @@ html {
   background-color: #475569;
 }
 
+/* Ticket Notch Utility */
+.ticket-notch-mask {
+  --r: 12px; /* radius of the notch */
+  mask: 
+    radial-gradient(var(--r) at left, transparent 98%, black) left / 51% 100% no-repeat,
+    radial-gradient(var(--r) at right, transparent 98%, black) right / 51% 100% no-repeat;
+}
+
 /* Animation Utilities */
 @keyframes bounce-slow {
   0%, 100% {
-    transform: translateY(-5%);
+    transform: translateY(-3%);
     animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
   }
   50% {
-    transform: translateY(5%);
+    transform: translateY(3%);
     animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
   }
 }
 
 .animate-bounce-slow {
-  animation: bounce-slow 2s infinite;
+  animation: bounce-slow 3s infinite;
 }
