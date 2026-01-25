@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ExternalLink, ShoppingBag, Tag, Edit2, Trash2, ShoppingCart, Share2, Flame, Eye, Heart, Store, PlayCircle } from 'lucide-react';
+import { 
+  Heart, Edit2, Trash2, 
+  ExternalLink, ShoppingBag, Store, PlayCircle, Layers,
+  Flame, Eye, HeartCrack, Share2, Pin, PinOff, PawPrint
+} from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { toast } from 'react-hot-toast';
 import { Link } from '../lib/supabase';
@@ -16,6 +20,8 @@ interface LinkCardProps {
   lang: Language;
   isWishlisted: boolean;
   onToggleWishlist: (id: string) => void;
+  onShare: (link: Link) => void;
+  onTogglePin?: (id: string, currentStatus: boolean) => void;
 }
 
 export const LinkCard: React.FC<LinkCardProps> = ({ 
@@ -26,10 +32,11 @@ export const LinkCard: React.FC<LinkCardProps> = ({
   onTrackClick, 
   lang,
   isWishlisted,
-  onToggleWishlist
+  onToggleWishlist,
+  onShare,
+  onTogglePin
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [imgError, setImgError] = useState(false); // State to track broken images
   const t = TRANSLATIONS[lang];
 
   const handleCardClick = () => {
@@ -41,245 +48,229 @@ export const LinkCard: React.FC<LinkCardProps> = ({
     onTrackClick(link.id);
     
     confetti({
-      particleCount: 30,
-      spread: 50,
-      origin: { y: 0.8 },
-      colors: ['#0ea5e9', '#f472b6'],
+      particleCount: 40,
+      spread: 60,
+      origin: { y: 0.7 },
+      colors: ['#36b2fa', '#f43f5e', '#fbbf24'],
       disableForReducedMotion: true,
       scalar: 0.8
     });
-  };
-
-  const handleShare = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const shareData = {
-      title: `Miaw Racun: ${link.title}`,
-      text: `Cek barang gemoy ini: ${link.title} 😻`,
-      url: link.url
-    };
-
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-        toast.success(t.saved); 
-      } else {
-        await navigator.clipboard.writeText(link.url);
-        toast.success(t.copied);
-      }
-    } catch (err) {
-      console.error("Error sharing:", err);
-    }
   };
 
   const handleWishlist = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggleWishlist(link.id);
     if (!isWishlisted) {
-      toast.success(t.wishlistAdded, { icon: '💖' });
+      toast.success(t.wishlistAdded, { 
+        icon: <Heart className="w-5 h-5 text-pink-500 fill-current" /> 
+      });
     } else {
-      toast(t.wishlistRemoved, { icon: '💔' });
+      toast(t.wishlistRemoved, { 
+        icon: <HeartCrack className="w-5 h-5 text-gray-400" /> 
+      });
     }
   };
 
-  // Helper for Platform Styles (GLOSSY PILL / JELLY BEAN STYLE)
-  const getPlatformConfig = (platform: string) => {
+  const handleShareClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onShare(link);
+  };
+
+  const handlePinClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onTogglePin) {
+        onTogglePin(link.id, link.is_pinned || false);
+    }
+  };
+
+  // Platform Icons & Colors
+  const getPlatformInfo = (platform: string) => {
     switch(platform) {
-      case 'Shopee': 
-        return {
-          className: 'bg-orange-500 text-white shadow-orange-500/40',
-          icon: ShoppingBag,
-          bgLight: 'bg-orange-50 text-orange-500'
-        };
-      case 'Tokopedia': 
-        return {
-          className: 'bg-green-500 text-white shadow-green-500/40',
-          icon: Store,
-          bgLight: 'bg-green-50 text-green-500'
-        };
-      case 'Lazada': 
-        return {
-          className: 'bg-blue-600 text-white shadow-blue-600/40',
-          icon: Heart,
-          bgLight: 'bg-blue-50 text-blue-500'
-        };
-      case 'TikTok Shop': 
-        return {
-          className: 'bg-black text-white shadow-gray-900/40',
-          icon: PlayCircle,
-          bgLight: 'bg-gray-100 text-gray-800'
-        };
-      default: 
-        return {
-          className: 'bg-purple-500 text-white shadow-purple-500/40',
-          icon: ExternalLink,
-          bgLight: 'bg-purple-50 text-purple-500'
-        };
+      case 'Shopee': return { icon: ShoppingBag, color: 'text-orange-500 bg-orange-50' };
+      case 'Tokopedia': return { icon: Store, color: 'text-green-500 bg-green-50' };
+      case 'Lazada': return { icon: Heart, color: 'text-blue-500 bg-blue-50' };
+      case 'TikTok Shop': return { icon: PlayCircle, color: 'text-black bg-gray-100' };
+      default: return { icon: Layers, color: 'text-purple-500 bg-purple-50' };
     }
   };
 
-  const platformConfig = getPlatformConfig(link.platform);
-  const PlatformIcon = platformConfig.icon;
-
-  // Determine if we should show the image or the fallback icon
-  const showImage = link.image_url && !imgError;
+  const { icon: PlatformIcon, color: platformClass } = getPlatformInfo(link.platform);
 
   return (
     <motion.div
       layout
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
+      whileHover={{ scale: 1.01 }}
       className={cn(
-        "bg-white dark:bg-dark-surface rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-800 group",
-        isExpanded ? "ring-2 ring-cat-300 dark:ring-cat-700 shadow-cat-200/50" : ""
+        "bg-white dark:bg-dark-surface rounded-[1.5rem] shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border-2 relative group",
+        isExpanded ? "border-cat-300 dark:border-cat-700" : "border-gray-50 dark:border-gray-800",
+        // Pinned Styling: Rose Tint & Border
+        link.is_pinned ? "border-rose-200 dark:border-rose-900/50 bg-rose-50/30 dark:bg-rose-900/10" : ""
       )}
     >
+      {/* Pinned Indicator Badge - Sticker Style */}
+      {link.is_pinned && (
+        <div className="absolute top-0 right-0 z-20 pointer-events-none">
+            <div className="bg-rose-400 text-white px-3 py-1.5 rounded-bl-2xl shadow-sm flex items-center gap-1">
+                <Pin className="w-3 h-3 fill-white" />
+                <span className="text-[9px] font-black uppercase tracking-wider">{t.pinnedLabel}</span>
+            </div>
+        </div>
+      )}
+
+      {/* Main Clickable Area */}
       <div 
         onClick={handleCardClick}
-        className="p-3 md:p-4 cursor-pointer relative"
+        className="p-3 cursor-pointer relative z-10 flex items-center gap-3"
       >
-        <div className="flex items-center gap-3 md:gap-4">
-          
-          {/* IMAGE PREVIEW OR PLATFORM ICON */}
-          <div className={cn(
-            "w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center shrink-0 transition-all shadow-sm relative overflow-hidden",
-            !showImage && platformConfig.bgLight // Apply background color only if no image
-          )}>
-             {link.clicks > 10 && (
-                <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] px-1.5 py-0.5 rounded-bl-lg font-bold z-10 flex items-center gap-0.5 animate-pulse">
-                    <Flame className="w-2 h-2 fill-current" /> {t.hotBadge}
-                </div>
-             )}
-            
-            {showImage ? (
-                <img 
-                    src={link.image_url} 
-                    alt={link.title} 
-                    onError={() => setImgError(true)} // Fallback on error
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
-                />
-            ) : (
-                <PlatformIcon className="w-6 h-6 md:w-7 md:h-7 group-hover:scale-110 transition-transform duration-300" />
-            )}
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-gray-800 dark:text-white truncate text-[13px] md:text-[18px] leading-tight group-hover:text-cat-600 dark:group-hover:text-cat-400 transition-colors">
-              {link.title}
-            </h3>
-            <div className="flex items-center gap-2 text-[11px] md:text-sm text-gray-500 dark:text-gray-400 mt-2 flex-wrap">
-              <span className="bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-lg flex items-center gap-1.5 font-medium">
-                <Tag className="w-3 h-3" /> {link.category.replace(/ .*/, '')}
-              </span>
-              
-              {/* Aesthetic Platform Badge - GLOSSY PILL STYLE */}
-              <span className={cn(
-                "px-3 py-1 rounded-full text-[10px] font-bold shadow-lg transform active:scale-95 transition-all flex items-center gap-1.5 tracking-wide relative overflow-hidden",
-                platformConfig.className
-              )}>
-                {/* Shine Effect */}
-                <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-white/30 to-transparent" />
-                
-                <PlatformIcon className="w-3 h-3 fill-white/20 relative z-10" />
-                <span className="relative z-10">{link.platform}</span>
-              </span>
-              
-              {isAdmin && (
-                  <>
-                    <span className="text-gray-300">•</span>
-                    <span className="flex items-center gap-1 text-xs text-orange-500 font-bold bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 rounded-md">
-                        <Eye className="w-3 h-3" /> {link.clicks}
-                    </span>
-                  </>
-              )}
+        {/* Left: Platform Icon (Compact) */}
+        <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shrink-0", platformClass)}>
+            <PlatformIcon className="w-5 h-5" />
+        </div>
 
-              {!isAdmin && link.clicks > 20 && (
-                  <>
-                    <span className="text-gray-300">•</span>
-                    <span className="flex items-center gap-1 text-xs text-red-400 font-bold italic">
+        {/* Center: Title & Badges */}
+        <div className={cn(
+            "flex-1 min-w-0 transition-all",
+            // Add extra padding to the right if pinned to prevent overlap with the badge
+            link.is_pinned ? "pr-20" : "pr-2"
+        )}>
+            <h3 className={cn(
+                "font-bold text-gray-800 dark:text-white text-sm leading-tight mb-1 truncate",
+                link.is_pinned ? "text-rose-600 dark:text-rose-400" : ""
+            )}>
+                {link.title}
+            </h3>
+            <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-400">
+                <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
+                    {link.category.replace(/ .*/, '')}
+                </span>
+                {link.clicks > 20 && (
+                    <span className="text-red-400 flex items-center gap-0.5">
                         <Flame className="w-3 h-3 fill-current" /> {t.hotBadge}
                     </span>
-                  </>
-              )}
+                )}
             </div>
-          </div>
-
-          {/* Wishlist Button */}
-          <button 
-            onClick={handleWishlist}
-            className={cn(
-              "p-2 rounded-full transition-colors z-20",
-              isWishlisted ? "text-pink-500 bg-pink-50 dark:bg-pink-900/20" : "text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-            )}
-          >
-            <Heart className={cn("w-5 h-5 md:w-6 md:h-6", isWishlisted ? "fill-current" : "")} />
-          </button>
-
-          <motion.div
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            className="text-gray-300 hover:text-cat-500 transition-colors bg-gray-50 dark:bg-gray-800 p-1.5 rounded-full"
-          >
-            <ChevronDown className="w-5 h-5 md:w-6 md:h-6" />
-          </motion.div>
         </div>
+
+        {/* Right: Cute Expand Icon (Paw) */}
+        {!link.is_pinned && ( // Only show expand icon here if NOT pinned (to avoid clutter), OR we can adjust layout
+             <div className="shrink-0 text-cat-300 group-hover:text-cat-500 transition-colors">
+                <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300",
+                    isExpanded ? "bg-cat-100 text-cat-500 rotate-180" : "bg-gray-50 dark:bg-gray-800"
+                )}>
+                    <PawPrint className="w-4 h-4" />
+                </div>
+            </div>
+        )}
+        {/* If pinned, we might want to push the expand icon down or hide it in collapsed view if it conflicts, 
+            but with pr-20 on title, we have space. Let's keep it consistent but maybe move it slightly.
+            Actually, let's keep it simple: The badge is absolute top-right. 
+            The expand icon is flex-end. 
+            If pinned, the badge takes the top-right corner. 
+            So the expand icon might overlap if we are not careful.
+            Let's wrap the expand icon in a container that pushes it down if needed? 
+            Or just rely on the padding.
+            
+            Better approach: If pinned, the badge is there. The expand icon should probably be visible.
+            Let's just ensure the badge doesn't cover the expand icon.
+        */}
+         {link.is_pinned && (
+             <div className="shrink-0 text-cat-300 group-hover:text-cat-500 transition-colors mt-8">
+                <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300",
+                    isExpanded ? "bg-rose-100 text-rose-500 rotate-180" : "bg-rose-50 dark:bg-rose-900/20"
+                )}>
+                    <PawPrint className="w-4 h-4" />
+                </div>
+            </div>
+         )}
       </div>
 
+      {/* Expanded Content */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="px-3 pb-3 md:px-4 md:pb-4 bg-gray-50/50 dark:bg-gray-800/20"
+            className="bg-cat-50/50 dark:bg-dark-surface2/30 border-t border-gray-100 dark:border-gray-800"
           >
-            <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
-              <div className="bg-white dark:bg-dark-surface p-3 rounded-xl mb-3 border border-gray-100 dark:border-gray-700 relative">
-                 <div className="absolute -left-1 top-4 w-1 h-8 bg-cat-400 rounded-r-full"></div>
-                 <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300 leading-relaxed italic pl-2">
-                  "{link.description || t.defaultDesc}"
-                </p>
-              </div>
-              
-              <div className="flex flex-col gap-3">
-                <div className="flex gap-2">
-                    <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={handleLinkClick}
-                    className="flex-1 bg-cat-500 hover:bg-cat-600 text-white font-bold text-xs md:text-sm py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-cat-500/20 active:scale-95 hover:-translate-y-0.5"
-                    >
-                    <ShoppingCart className="w-4 h-4" />
-                    {t.buyBtn}
-                    <ExternalLink className="w-3 h-3 opacity-70" />
-                    </a>
-
-                    <button
-                        onClick={handleShare}
-                        className="px-4 py-3 bg-white dark:bg-dark-surface border-2 border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all active:scale-95 flex items-center justify-center"
-                        title={t.shareBtn}
-                    >
-                        <Share2 className="w-5 h-5" />
-                    </button>
+            <div className="p-3 pt-2">
+                {/* Description Bubble */}
+                <div className="bg-white dark:bg-dark-surface p-2.5 rounded-2xl mb-3 border border-gray-100 dark:border-gray-700 shadow-sm text-center relative">
+                    <p className="text-xs text-gray-600 dark:text-gray-300 italic leading-relaxed">
+                        "{link.description || t.defaultDesc}"
+                    </p>
                 </div>
 
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                    <button 
+                        onClick={handleWishlist}
+                        className={cn(
+                            "p-2.5 rounded-2xl transition-all border-2 active:scale-95",
+                            isWishlisted 
+                                ? "bg-pink-50 border-pink-200 text-pink-500" 
+                                : "bg-white dark:bg-dark-surface border-gray-100 dark:border-gray-700 text-gray-400 hover:border-pink-200 hover:text-pink-400"
+                        )}
+                        title={t.wishlistLabel}
+                    >
+                        <Heart className={cn("w-4 h-4", isWishlisted ? "fill-current" : "")} />
+                    </button>
+
+                    <button 
+                        onClick={handleShareClick}
+                        className="p-2.5 rounded-2xl transition-all border-2 active:scale-95 bg-white dark:bg-dark-surface border-gray-100 dark:border-gray-700 text-gray-400 hover:border-cat-200 hover:text-cat-500"
+                        title={t.shareBtn}
+                    >
+                        <Share2 className="w-4 h-4" />
+                    </button>
+
+                    <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={handleLinkClick}
+                        className="flex-1 bg-cat-500 hover:bg-cat-600 text-white font-bold text-xs rounded-2xl flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95 border-b-4 border-cat-600 hover:border-cat-700 py-2.5"
+                    >
+                        {t.buyBtn} <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                </div>
+
+                {/* Admin Actions */}
                 {isAdmin && (
-                  <div className="flex gap-2 justify-end pt-2 border-t border-gray-100 dark:border-gray-800 border-dashed">
-                    <span className="text-[10px] text-gray-400 self-center mr-auto">{t.adminControls}</span>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onEdit(link); }}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors text-xs font-bold"
-                    >
-                      <Edit2 className="w-3 h-3" /> {t.editBtn}
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); onDelete(link.id); }}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-xs font-bold"
-                    >
-                      <Trash2 className="w-3 h-3" /> {t.deleteBtn}
-                    </button>
-                  </div>
+                    <div className="flex gap-2 justify-center pt-3 mt-2 border-t border-dashed border-gray-200 dark:border-gray-700">
+                        <button
+                            onClick={handlePinClick}
+                            className={cn(
+                                "flex items-center gap-1 px-2.5 py-1 rounded-lg transition-colors text-[10px] font-bold",
+                                link.is_pinned 
+                                    ? "bg-rose-100 text-rose-700 hover:bg-rose-200" 
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            )}
+                        >
+                            {link.is_pinned ? <PinOff className="w-3 h-3" /> : <Pin className="w-3 h-3" />}
+                            {link.is_pinned ? t.unpinBtn : t.pinBtn}
+                        </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onEdit(link); }}
+                            className="flex items-center gap-1 px-2.5 py-1 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors text-[10px] font-bold"
+                        >
+                            <Edit2 className="w-3 h-3" /> {t.editBtn}
+                        </button>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(link.id); }}
+                            className="flex items-center gap-1 px-2.5 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-[10px] font-bold"
+                        >
+                            <Trash2 className="w-3 h-3" /> {t.deleteBtn}
+                        </button>
+                        <div className="flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-bold ml-auto">
+                            <Eye className="w-3 h-3" /> {link.clicks}
+                        </div>
+                    </div>
                 )}
-              </div>
             </div>
           </motion.div>
         )}

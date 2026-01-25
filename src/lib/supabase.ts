@@ -19,7 +19,8 @@ export type Link = {
   description: string;
   category: string;
   platform: string;
-  image_url?: string; // Added image_url
+  image_url?: string;
   clicks: number;
   is_active: boolean;
+  is_pinned?: boolean; // Added is_pinned
 };

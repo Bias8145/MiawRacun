@@ -39,7 +39,7 @@ export const Greeting: React.FC<GreetingProps> = ({ lang }) => {
         if (lang === 'jv') period = 'Sugeng Enjang!';
         else if (lang === 'su') period = 'Wilujeng Enjing!';
         else if (lang === 'en') period = 'Good Morning!';
-        else period = 'Pagi Hooman!';
+        else period = 'Pagi Bestie!';
         
         timeSpecificPhrases = DICT.morning;
         icon = Coffee;
@@ -47,7 +47,7 @@ export const Greeting: React.FC<GreetingProps> = ({ lang }) => {
         if (lang === 'jv') period = 'Sugeng Siyang!';
         else if (lang === 'su') period = 'Wilujeng Siang!';
         else if (lang === 'en') period = 'Good Afternoon!';
-        else period = 'Siang Bestie!';
+        else period = 'Siang Guys!';
 
         timeSpecificPhrases = DICT.afternoon;
         icon = Sun;
@@ -55,7 +55,7 @@ export const Greeting: React.FC<GreetingProps> = ({ lang }) => {
         if (lang === 'jv') period = 'Sugeng Sonten!';
         else if (lang === 'su') period = 'Wilujeng Sonten!';
         else if (lang === 'en') period = 'Good Evening!';
-        else period = 'Sore Santuy!';
+        else period = 'Sore Vibes!';
 
         timeSpecificPhrases = DICT.evening;
         icon = Cloud;
@@ -63,7 +63,7 @@ export const Greeting: React.FC<GreetingProps> = ({ lang }) => {
         if (lang === 'jv') period = 'Sugeng Dalu!';
         else if (lang === 'su') period = 'Wilujeng Wengi!';
         else if (lang === 'en') period = 'Good Night!';
-        else period = 'Malem Guys!';
+        else period = 'Malem Bestie!';
 
         timeSpecificPhrases = DICT.night;
         icon = Moon;
@@ -93,36 +93,33 @@ export const Greeting: React.FC<GreetingProps> = ({ lang }) => {
   const Icon = greeting.icon;
 
   return (
-    <div className="w-full max-w-2xl mx-auto mb-8 text-center px-4">
+    <div className="w-full mb-4 text-center">
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white/80 dark:bg-dark-surface/80 backdrop-blur-md rounded-3xl p-6 shadow-lg border border-cat-100 dark:border-gray-700 relative overflow-hidden group hover:shadow-cat-200/50 transition-all duration-500"
+        className="bg-white dark:bg-dark-surface rounded-[2rem] p-4 shadow-sm border border-cat-50 dark:border-gray-700 relative overflow-hidden group"
       >
-        <div className="absolute -top-10 -right-10 w-32 h-32 bg-cat-200/30 rounded-full blur-2xl group-hover:bg-cat-300/30 transition-colors duration-700 animate-pulse" />
-        <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-pink-200/30 rounded-full blur-2xl group-hover:bg-pink-300/30 transition-colors duration-700 animate-pulse" style={{ animationDelay: '1s' }} />
-
         <div className="relative z-10">
-          <h1 className="text-2xl md:text-3xl font-black text-gray-800 dark:text-white mb-3 flex items-center justify-center gap-2 tracking-tight">
+          <h1 className="text-xl font-black text-gray-800 dark:text-white mb-2 flex items-center justify-center gap-2 tracking-tight">
             {greeting.period} 
             <motion.div 
               animate={{ rotate: [0, 10, -10, 0] }}
               transition={{ repeat: Infinity, duration: 2, repeatDelay: 3 }}
             >
-              <Cat className="w-8 h-8 text-cat-500" />
+              <Cat className="w-6 h-6 text-cat-500" />
             </motion.div>
           </h1>
           
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-1">
             <AnimatePresence mode="wait">
               <motion.div
                 key={greeting.timeText}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex items-center gap-2 text-cat-600 dark:text-cat-300 font-bold bg-cat-50 dark:bg-gray-800/50 px-5 py-2 rounded-full text-sm shadow-sm border border-cat-100 dark:border-gray-700"
+                exit={{ opacity: 0, y: -5 }}
+                className="flex items-center gap-1.5 text-cat-600 dark:text-cat-300 font-bold bg-cat-50 dark:bg-gray-800/50 px-3 py-1 rounded-full text-xs"
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-3 h-3" />
                 <span>{greeting.timeText}</span>
               </motion.div>
             </AnimatePresence>
@@ -134,7 +131,7 @@ export const Greeting: React.FC<GreetingProps> = ({ lang }) => {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.05 }}
                 transition={{ duration: 0.5 }}
-                className="text-gray-500 dark:text-gray-400 text-xs md:text-sm italic font-medium px-4"
+                className="text-gray-500 dark:text-gray-400 text-[10px] md:text-xs italic font-medium px-4 mt-1"
               >
                 "{greeting.subText}"
               </motion.p>

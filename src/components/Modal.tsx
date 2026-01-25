@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { PawPrint } from 'lucide-react';
 import { cn } from '../utils/helpers';
 
 interface ModalProps {
@@ -8,8 +8,8 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  zIndex?: number; // Added prop to control stacking
-  isConfirmation?: boolean; // Special style for confirmation
+  zIndex?: number;
+  isConfirmation?: boolean;
 }
 
 export const Modal: React.FC<ModalProps> = ({ 
@@ -24,61 +24,59 @@ export const Modal: React.FC<ModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
             style={{ zIndex: zIndex }}
-            className={cn(
-              "fixed inset-0 transition-all duration-500",
-              // Improved blur and opacity for better separation
-              isConfirmation 
-                ? "bg-white/40 dark:bg-black/60 backdrop-blur-xl" 
-                : "bg-black/40 backdrop-blur-sm"
-            )}
+            className="fixed inset-0 bg-cat-900/20 dark:bg-black/60 backdrop-blur-sm transition-all"
           />
           
-          {/* Modal Content */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          <div 
             style={{ zIndex: zIndex + 1 }}
             className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none"
           >
-            <div className={cn(
-              "w-full rounded-3xl shadow-2xl pointer-events-auto flex flex-col max-h-[90vh] border border-white/20",
-              isConfirmation 
-                ? "max-w-sm bg-white/95 dark:bg-dark-surface/95 backdrop-blur-2xl shadow-cat-500/20" 
-                : "max-w-md bg-white dark:bg-dark-surface"
-            )}>
-              <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800 relative">
-                <h2 className={cn(
-                  "font-bold text-gray-800 dark:text-white",
-                  isConfirmation ? "text-lg text-center w-full" : "text-xl"
-                )}>
-                  {title}
-                </h2>
-                {!isConfirmation && (
-                  <button 
-                    onClick={onClose}
-                    className="absolute right-4 top-4 group"
-                    title="Gulung Balik (Tutup)"
-                  >
-                    {/* Yarn Ball Style Close Button */}
-                    <div className="w-10 h-10 bg-rose-50 dark:bg-rose-900/20 rounded-full border-2 border-dashed border-rose-300 dark:border-rose-700 flex items-center justify-center text-rose-400 group-hover:rotate-180 transition-transform duration-700 ease-in-out shadow-sm group-hover:bg-rose-100 dark:group-hover:bg-rose-900/40">
-                      <X className="w-5 h-5" />
-                    </div>
-                  </button>
+             {/* Wrapper to prevent clipping of scaled children */}
+             <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className={cn(
+                  "w-full pointer-events-auto relative",
+                  isConfirmation ? "max-w-xs" : "max-w-md"
                 )}
-              </div>
-              <div className="p-6 overflow-y-auto custom-scrollbar">
-                {children}
-              </div>
-            </div>
-          </motion.div>
+             >
+                <div className={cn(
+                  "bg-white dark:bg-dark-surface rounded-[2rem] shadow-2xl border-4 border-white dark:border-dark-surface overflow-hidden flex flex-col max-h-[85vh]",
+                  isConfirmation ? "" : ""
+                )}>
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-5 pt-5 pb-2 shrink-0">
+                    <h2 className={cn(
+                      "font-black text-gray-800 dark:text-white text-base tracking-tight",
+                      isConfirmation ? "text-center w-full" : ""
+                    )}>
+                      {title}
+                    </h2>
+                    {!isConfirmation && (
+                      <button 
+                        onClick={onClose}
+                        className="group flex items-center justify-center w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all active:scale-90"
+                        title="Tutup"
+                      >
+                        <PawPrint className="w-4 h-4 transition-transform group-hover:rotate-12" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="px-5 pb-5 overflow-y-auto custom-scrollbar">
+                    {children}
+                  </div>
+                </div>
+             </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
