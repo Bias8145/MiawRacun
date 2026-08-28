@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 import { 
   LogIn, LogOut, Moon, Sun, Settings, 
@@ -30,7 +31,172 @@ import {
 } from './utils/helpers';
 import { TRANSLATIONS, Language } from './utils/translations';
 
-function App() {
+// Login Page Component
+const LoginPage: React.FC = () => {
+  const [password, setPassword] = useState('');
+  const [showConfirmModal, setShowConfirmModal] = useState<{type: string} | null>(null);
+  const [darkMode, setDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('miawTheme');
+    return savedTheme === 'dark';
+  });
+  const [lang, setLang] = useState<Language>(() => {
+    const saved = localStorage.getItem('miawLang');
+    return (saved as Language) || 'id';
+  });
+
+  const t = TRANSLATIONS[lang];
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowConfirmModal({ type: 'login' });
+  };
+
+  const confirmLogin = () => {
+    if (password === 'ichabias') {
+      localStorage.setItem('isAdmin', 'true');
+      setShowConfirmModal(null);
+      toast.success(t.welcomeBack);
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#0ea5e9', '#f472b6', '#fbbf24']
+      });
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    } else {
+      toast.error(t.wrongPass);
+      setShowConfirmModal(null);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-cat-50 dark:bg-dark-bg transition-colors duration-300 font-sans flex flex-col items-center justify-center p-4">
+      <Toaster 
+        position="top-center" 
+        toastOptions={{
+          style: {
+            borderRadius: '50px',
+            background: darkMode ? '#334155' : '#fff',
+            color: darkMode ? '#fff' : '#333',
+            fontFamily: 'Fredoka, sans-serif',
+            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+            padding: '8px 16px',
+            fontSize: '14px',
+            fontWeight: 500,
+          },
+        }} 
+      />
+
+      <div className="w-full max-w-sm">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex bg-white dark:bg-dark-surface rounded-[2rem] shadow-sm border border-gray-100 dark:border-gray-700 px-4 py-2 items-center gap-2 mb-4">
+            <PawPrint className="w-6 h-6 text-pink-400 stroke-[2.5px] fill-transparent -rotate-12" />
+            <h1 className="font-black text-lg tracking-tighter">
+              <span className="text-cat-400">Meow</span>
+              <span className="text-purple-400">Racun</span>
+              <FlaskConical className="w-4 h-4 text-purple-500 fill-purple-100 dark:fill-purple-900/30 stroke-[2.5px] ml-0.5 inline" />
+            </h1>
+          </div>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">{t.loginDesc}</p>
+        </div>
+
+        {/* Login Form */}
+        <div className="bg-white dark:bg-dark-surface rounded-[2rem] p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">
+                {t.passwordLabel}
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-cat-500 outline-none transition-all text-sm"
+                placeholder={t.passwordPlaceholder}
+                autoFocus
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-cat-500 hover:bg-cat-600 text-white font-bold py-3 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95 text-sm"
+            >
+              <LogIn className="w-4 h-4" /> {t.loginBtn}
+            </button>
+          </form>
+        </div>
+
+        {/* Controls */}
+        <div className="flex justify-center gap-2 mt-6">
+          <LanguageSelector currentLang={lang} onSelect={setLang} />
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="p-2 rounded-full bg-white dark:bg-dark-surface shadow-sm border border-gray-100 dark:border-gray-700 text-cat-500 dark:text-cat-300 hover:bg-cat-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+        </div>
+
+        {/* Back to Home */}
+        <div className="text-center mt-6">
+          <a 
+            href="/" 
+            className="text-xs text-gray-400 hover:text-cat-500 transition-colors font-medium"
+          >
+            ← Kembali ke Beranda
+          </a>
+        </div>
+      </div>
+
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={!!showConfirmModal}
+        onClose={() => setShowConfirmModal(null)}
+        title={t.confirmTitle}
+        zIndex={60}
+        isConfirmation={true}
+      >
+        <div className="text-center pt-4">
+          <div className="flex justify-center mb-4">
+            <Cat className="w-16 h-16 text-cat-500 dark:text-cat-400" />
+          </div>
+          
+          <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm font-medium leading-relaxed px-4">
+            {t.confirmLogin}
+          </p>
+          
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowConfirmModal(null)}
+              className="flex-1 px-4 py-3 rounded-2xl border-2 border-gray-100 dark:border-gray-700 font-bold text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm"
+            >
+              {t.cancelBtn}
+            </button>
+            <button
+              onClick={confirmLogin}
+              className="flex-1 px-4 py-3 rounded-2xl bg-cat-500 text-white font-bold hover:bg-cat-600 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2 text-sm"
+            >
+              {t.confirmBtn}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+// Main Home Page Component
+const HomePage: React.FC = () => {
   // State
   const [links, setLinks] = useState<Link[]>([]);
   const [filteredLinks, setFilteredLinks] = useState<Link[]>([]);
@@ -54,7 +220,7 @@ function App() {
   const [showWishlistOnly, setShowWishlistOnly] = useState(false);
   
   const [mood, setMood] = useState<'all' | 'sultan' | 'bokek' | 'galau' | 'bucin'>('all');
-  const [isCategoriesExpanded, setIsCategoriesExpanded] = useState(false); // Default collapsed
+  const [isCategoriesExpanded, setIsCategoriesExpanded] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -64,13 +230,11 @@ function App() {
   const [selectedPlatform, setSelectedPlatform] = useState('Semua Platform');
   const [sortBy, setSortBy] = useState<'newest' | 'popular'>('newest');
 
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState<{type: string, id?: string} | null>(null);
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [shareData, setShareData] = useState<Link | null>(null); // State for Share Modal
+  const [shareData, setShareData] = useState<Link | null>(null);
 
-  const [password, setPassword] = useState('');
   const [linkForm, setLinkForm] = useState<Partial<Link>>({});
   const [isAutoFilling, setIsAutoFilling] = useState(false);
   const [previewImgError, setPreviewImgError] = useState(false);
@@ -171,11 +335,9 @@ function App() {
 
     // Sorting Logic with PIN Priority
     result.sort((a, b) => {
-        // Priority 1: Pinned status
         if (a.is_pinned && !b.is_pinned) return -1;
         if (!a.is_pinned && b.is_pinned) return 1;
 
-        // Priority 2: Selected sort criteria
         if (sortBy === 'popular') {
             return b.clicks - a.clicks;
         } else {
@@ -186,7 +348,6 @@ function App() {
     setFilteredLinks(result);
   }, [links, searchQuery, selectedCategory, selectedPlatform, sortBy, showWishlistOnly, wishlist, mood]);
 
-  // Auto-hide categories when searching
   useEffect(() => {
     if (searchQuery) {
       setIsCategoriesExpanded(false);
@@ -212,7 +373,6 @@ function App() {
   const handleTogglePin = async (id: string, currentStatus: boolean) => {
     if (!isAdmin) return;
     
-    // Optimistic Update
     setLinks(prev => prev.map(l => l.id === id ? { ...l, is_pinned: !currentStatus } : l));
     
     try {
@@ -228,33 +388,7 @@ function App() {
     } catch (error) {
         console.error('Error toggling pin:', error);
         toast.error("Gagal update pin meow!");
-        // Revert optimistic update
         setLinks(prev => prev.map(l => l.id === id ? { ...l, is_pinned: currentStatus } : l));
-    }
-  };
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowConfirmModal({ type: 'login' });
-  };
-
-  const confirmLogin = () => {
-    if (password === 'ichabias') {
-      setIsAdmin(true);
-      localStorage.setItem('isAdmin', 'true');
-      setShowLoginModal(false);
-      setPassword('');
-      setShowConfirmModal(null);
-      toast.success(t.welcomeBack);
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#0ea5e9', '#f472b6', '#fbbf24']
-      });
-    } else {
-      toast.error(t.wrongPass);
-      setShowConfirmModal(null);
     }
   };
 
@@ -295,7 +429,7 @@ function App() {
         platform,
         clicks: linkForm.clicks || 0,
         is_active: true,
-        is_pinned: false // Default not pinned
+        is_pinned: false
       };
 
       if (linkForm.id) {
@@ -426,7 +560,6 @@ function App() {
       setSelectedCategory('Semua');
   };
 
-  // Share Logic
   const handleShare = (link: Link) => {
     setShareData(link);
   };
@@ -478,8 +611,6 @@ function App() {
   };
 
   const activeFiltersCount = (mood !== 'all' ? 1 : 0) + (selectedPlatform !== 'Semua Platform' ? 1 : 0) + (sortBy !== 'newest' ? 1 : 0);
-
-  // Helper to get active category object
   const activeCategory = CATEGORIES.find(c => c.id === selectedCategory);
 
   return (
@@ -562,12 +693,12 @@ function App() {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => setShowLoginModal(true)}
+              <a
+                href="/login"
                 className="p-2 rounded-full text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <Settings className="w-4 h-4" />
-              </button>
+              </a>
             )}
           </div>
         </div>
@@ -738,7 +869,6 @@ function App() {
                             >
                             <AnimatePresence mode="wait" initial={false}>
                                 {!isCategoriesExpanded ? (
-                                /* Collapsed Preview */
                                 <motion.div
                                     key="collapsed"
                                     initial={{ opacity: 0, height: 0 }}
@@ -775,7 +905,6 @@ function App() {
                                     </button>
                                 </motion.div>
                                 ) : (
-                                /* Expanded Grid */
                                 <motion.div
                                     key="expanded"
                                     initial={{ opacity: 0, height: 0 }}
@@ -985,7 +1114,7 @@ function App() {
         </div>
       </Modal>
 
-      {/* SHARE MODAL - NEW */}
+      {/* SHARE MODAL */}
       <Modal
         isOpen={!!shareData}
         onClose={() => setShareData(null)}
@@ -1049,37 +1178,6 @@ function App() {
                 </button>
             </div>
         </div>
-      </Modal>
-
-      {/* Login Modal */}
-      <Modal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        title={t.loginTitle}
-      >
-        <form onSubmit={handleLogin} className="space-y-3">
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-2xl text-xs text-blue-600 dark:text-blue-300 mb-3 flex gap-2">
-            <LogIn className="w-4 h-4 shrink-0" />
-            {t.loginDesc}
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5">{t.passwordLabel}</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-2xl bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-cat-500 outline-none transition-all text-sm"
-              placeholder={t.passwordPlaceholder}
-              autoFocus
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-cat-500 hover:bg-cat-600 text-white font-bold py-3 rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95 text-sm"
-          >
-            <LogIn className="w-4 h-4" /> {t.loginBtn}
-          </button>
-        </form>
       </Modal>
 
       {/* Add/Edit Link Modal */}
@@ -1227,7 +1325,6 @@ function App() {
           </div>
           
           <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm font-medium leading-relaxed px-4">
-            {showConfirmModal?.type === 'login' && t.confirmLogin}
             {showConfirmModal?.type === 'logout' && t.confirmLogout}
             {showConfirmModal?.type === 'delete' && t.confirmDelete}
             {showConfirmModal?.type === 'save_link' && t.confirmSave}
@@ -1243,7 +1340,6 @@ function App() {
             </button>
             <button
               onClick={() => {
-                if (showConfirmModal?.type === 'login') confirmLogin();
                 if (showConfirmModal?.type === 'logout') confirmLogout();
                 if (showConfirmModal?.type === 'delete') confirmDelete();
                 if (showConfirmModal?.type === 'save_link') confirmSaveLink();
@@ -1264,6 +1360,19 @@ function App() {
         </div>
       </Modal>
     </div>
+  );
+};
+
+// Main App with Router
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
